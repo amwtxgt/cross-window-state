@@ -126,7 +126,7 @@ describe('createProxyState', () => {
   })
 
   it('set updates data and fires the write callback', () => {
-    const data = { a: 1 }
+    const data: Record<string, unknown> = { a: 1 }
     const onSet = vi.fn()
     const p = createProxyState(data, onSet)
     p.a = 10
@@ -135,7 +135,7 @@ describe('createProxyState', () => {
   })
 
   it('delete removes the key and fires the delete callback', () => {
-    const data = { a: 1, b: 2 }
+    const data: Record<string, unknown> = { a: 1, b: 2 }
     const onSet = vi.fn()
     const onDelete = vi.fn()
     const p = createProxyState(data, onSet, onDelete)
@@ -147,7 +147,7 @@ describe('createProxyState', () => {
   })
 
   it('delete falls back to onSet(key, undefined) without onDelete', () => {
-    const data = { a: 1 }
+    const data: Record<string, unknown> = { a: 1 }
     const onSet = vi.fn()
     const p = createProxyState(data, onSet)
     delete p.a
@@ -174,7 +174,7 @@ describe('createProxyState', () => {
   })
 
   it('write callback error propagates while data stays updated', () => {
-    const data = { a: 1 }
+    const data: Record<string, unknown> = { a: 1 }
     const p = createProxyState(data, () => {
       throw new Error('reject')
     })

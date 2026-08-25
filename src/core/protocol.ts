@@ -1,3 +1,5 @@
+import type { StorageStateOptions } from './types'
+
 /**
  * IPC wire protocol shared by main, preload and renderer.
  *
@@ -35,6 +37,16 @@ export interface RuntimeUpdatePayload {
 export interface StorageSetPayload {
   name: string
   patch: Record<string, unknown>
+}
+
+/**
+ * Renderer → main initial fetch payload (sendSync). The main process creates
+ * the store on first call with these defaults/version/options.
+ */
+export interface StorageGetPayload {
+  defaults: Record<string, unknown>
+  version: number
+  options?: StorageStateOptions
 }
 
 /** Per-key runtime broadcast channel, e.g. `cws:runtime:update:theme`. */

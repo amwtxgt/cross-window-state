@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import type { Mock } from 'vitest'
 import type { FakeIpcEvent, FakeWebContents } from './helpers/electron-impl'
 import type { StorageStore } from '../../../src/main/storage-store'
 
@@ -33,7 +34,7 @@ function sleep(ms: number): Promise<void> {
 
 let h: typeof import('./helpers/electron-impl')
 let Store: typeof import('../../../src/main/storage-store').StorageStore
-let fsSpy: typeof import('node:fs/promises')
+let fsSpy: { writeFile: Mock; rename: Mock }
 let userData: string
 
 async function fresh(): Promise<void> {
@@ -42,7 +43,7 @@ async function fresh(): Promise<void> {
   userData = h.resetElectronMock()
   const storeMod = await import('../../../src/main/storage-store')
   Store = storeMod.StorageStore
-  fsSpy = await import('node:fs/promises')
+  fsSpy = (await import('node:fs/promises')) as unknown as { writeFile: Mock; rename: Mock }
   await h.flushIpcSetup()
 }
 

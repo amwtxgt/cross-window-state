@@ -48,17 +48,20 @@ export class StorageStore<T extends Record<string, unknown>> {
 
   readonly name: string
   readonly version: number
-  readonly isNew: boolean
+  // `!` on the fields below: the constructor may early-return the existing
+  // instance (singleton dispatch), in which case `this` is discarded and
+  // these never get assigned on the throwaway object.
+  readonly isNew!: boolean
 
   private readonly defaults: T
-  private readonly data: Record<string, unknown>
-  private readonly filePath: string
+  private readonly data!: Record<string, unknown>
+  private readonly filePath!: string
   private readonly maxRetries: number
   private readonly retryDelay: number
   private readonly keySignals = new Map<string, Signal<unknown>>()
-  private readonly rootSignal: Signal<Record<string, unknown>>
-  private readonly proxyState: T
-  private readonly debouncedSave: DebouncedFunction<[]>
+  private readonly rootSignal!: Signal<Record<string, unknown>>
+  private readonly proxyState!: T
+  private debouncedSave!: DebouncedFunction<[]>
   private readonly rendererIds = new Set<number>()
   private dirty = false
   private writeInFlight = false
@@ -99,7 +102,7 @@ export class StorageStore<T extends Record<string, unknown>> {
       equality: 'always',
     })
     this.proxyState = createProxyState(
-      this.data,
+      this.data as T,
       (key) => this.onDataChanged(key),
       (key) => this.onDataChanged(key),
     )
