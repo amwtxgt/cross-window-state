@@ -1,0 +1,10 @@
+node_modules/
+dist/
+coverage/
+*.log
+.DS_Store
+docs/.vitepress/dist/
+docs/.vitepress/cache/
+test-results/
+playwright-report/
+.vercel

@@ -1,0 +1,102 @@
+{
+  "name": "cross-window-state",
+  "version": "0.0.0",
+  "description": "One state, many windows, always in sync — shared reactive state for Electron multi-window apps and cross-tab web apps, with built-in persistence and versioned migration.",
+  "type": "module",
+  "license": "MIT",
+  "sideEffects": false,
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs",
+      "types": "./dist/index.d.ts"
+    },
+    "./main": {
+      "import": "./dist/main/index.js",
+      "require": "./dist/main/index.cjs",
+      "types": "./dist/main/index.d.ts"
+    },
+    "./preload": {
+      "require": "./dist/preload/index.cjs",
+      "types": "./dist/preload/index.d.ts"
+    },
+    "./renderer": {
+      "import": "./dist/renderer/index.js",
+      "require": "./dist/renderer/index.cjs",
+      "types": "./dist/renderer/index.d.ts"
+    },
+    "./vue": {
+      "import": "./dist/vue/index.js",
+      "require": "./dist/vue/index.cjs",
+      "types": "./dist/vue/index.d.ts"
+    },
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "build": "tsdown",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "e2e": "playwright test -c test/e2e/playwright.config.ts",
+    "typecheck": "tsc --noEmit",
+    "lint": "oxlint && oxfmt --check .",
+    "format": "oxfmt",
+    "publint": "publint",
+    "attw": "attw --pack",
+    "docs:build": "vitepress build docs",
+    "docs:dev": "vitepress dev docs",
+    "release": "changeset publish"
+  },
+  "peerDependencies": {
+    "electron": ">=28",
+    "vue": ">=3.3"
+  },
+  "peerDependenciesMeta": {
+    "electron": {
+      "optional": true
+    },
+    "vue": {
+      "optional": true,
+      "inject": false
+    }
+  },
+  "devDependencies": {
+    "@arethetypeswrong/cli": "^0.18.5",
+    "@changesets/changelog-github": "^1.0.0",
+    "@changesets/cli": "^3.0.1",
+    "@playwright/test": "^1.62.1",
+    "@types/node": "^26.3.0",
+    "@vitest/coverage-v8": "^4.1.11",
+    "electron": "^44.0.0",
+    "happy-dom": "^20.11.6",
+    "oxfmt": "^0.65.0",
+    "oxlint": "^1.80.0",
+    "publint": "^0.3.24",
+    "tsdown": "^0.22.14",
+    "typescript": "^7.0.2",
+    "vite": "^8.2.2",
+    "vitepress": "^1.6.4",
+    "vitest": "^4.1.11",
+    "vue": "^3.5.41"
+  },
+  "keywords": [
+    "electron",
+    "electron-state",
+    "cross-window",
+    "cross-tab",
+    "multi-window",
+    "broadcast-channel",
+    "state-management",
+    "shared-state",
+    "vue",
+    "ipc"
+  ],
+  "engines": {
+    "node": ">=22"
+  }
+}

@@ -1,0 +1,10 @@
+packages:
+  - examples/*
+
+allowBuilds:
+  electron: true
+  esbuild: true
+
+minimumReleaseAgeExclude:
+  - '@types/node@26.3.0'
+  - electron@44.0.0
