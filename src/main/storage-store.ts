@@ -289,6 +289,15 @@ export class StorageStore<T extends Record<string, unknown>> {
     }
   }
 
+  /** Flush pending debounced writes synchronously (app-quit safe). */
+  flushSync(): void {
+    this.debouncedSave.cancel()
+    if (this.dirty) {
+      this.dirty = false
+      this.writeSyncNow()
+    }
+  }
+
   /** Flush pending writes synchronously and drop the instance. */
   destroy(): void {
     if (this.destroyed) {
@@ -296,11 +305,7 @@ export class StorageStore<T extends Record<string, unknown>> {
       return
     }
     this.destroyed = true
-    this.debouncedSave.cancel()
-    if (this.dirty) {
-      this.dirty = false
-      this.writeSyncNow()
-    }
+    this.flushSync()
     StorageStore.instances.delete(this.name)
     this.rendererIds.clear()
   }

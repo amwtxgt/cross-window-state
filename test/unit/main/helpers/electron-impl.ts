@@ -55,6 +55,7 @@ export const electronMock = {
       throw new Error(`electron-mock: unexpected getPath(${name})`)
     }),
     whenReady: vi.fn(() => Promise.resolve()),
+    on: vi.fn(),
   },
   ipcMain: {
     on: vi.fn((ch: string, handler: (event: FakeIpcEvent, ...args: unknown[]) => unknown) => {

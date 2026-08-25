@@ -4,7 +4,7 @@
   "description": "One state, many windows, always in sync — shared reactive state for Electron multi-window apps and cross-tab web apps, with built-in persistence and versioned migration.",
   "type": "module",
   "license": "MIT",
-  "sideEffects": false,
+  "sideEffects": true,
   "files": [
     "dist"
   ],
@@ -62,7 +62,7 @@
     "build": "tsdown",
     "test": "vitest run",
     "test:watch": "vitest",
-    "e2e": "playwright test -c test/e2e/playwright.config.ts",
+    "e2e": "pnpm build && pnpm --filter cross-window-state-example-basic build && playwright test -c test/e2e/playwright.config.ts",
     "typecheck": "tsc --noEmit",
     "lint": "oxlint && oxfmt --check .",
     "format": "oxfmt",

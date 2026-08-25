@@ -44,3 +44,11 @@ export function setupStorageIpc(): void {
 }
 
 void app.whenReady().then(setupStorageIpc)
+
+// App-quit flush: changes inside the last debounce window (300ms) must not
+// be lost — nobody calls destroy() on quit, so do it for every live store.
+app.on('will-quit', () => {
+  for (const store of StorageStore.instances.values()) {
+    store.flushSync()
+  }
+})
