@@ -176,6 +176,10 @@ export class StorageStore<T extends Record<string, unknown>> {
   }
 
   private applyChange(key: string, value: unknown): void {
+    if (this.destroyed) {
+      console.error(`[cws] StorageStore("${this.name}") was destroyed; set() is ignored.`)
+      return
+    }
     this.data[key] = value
     this.onDataChanged(key)
   }
@@ -193,6 +197,10 @@ export class StorageStore<T extends Record<string, unknown>> {
     key: K,
     cb: (newValue: T[K], oldValue: T[K] | undefined) => void,
   ): () => void {
+    if (this.destroyed) {
+      console.error(`[cws] StorageStore("${this.name}") was destroyed; watch() is ignored.`)
+      return () => {}
+    }
     let signal = this.keySignals.get(key)
     if (!signal) {
       signal = createSignal<unknown>(this.data[key], { equality: 'always' })
@@ -283,7 +291,10 @@ export class StorageStore<T extends Record<string, unknown>> {
 
   /** Flush pending writes synchronously and drop the instance. */
   destroy(): void {
-    if (this.destroyed) return
+    if (this.destroyed) {
+      console.error(`[cws] StorageStore("${this.name}") is already destroyed.`)
+      return
+    }
     this.destroyed = true
     this.debouncedSave.cancel()
     if (this.dirty) {

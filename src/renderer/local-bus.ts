@@ -16,7 +16,7 @@
 
 interface RuntimeEntry {
   value: unknown
-  listeners: Set<(value: unknown) => void>
+  listeners: Set<(payload: { key: string; newValue: unknown; oldValue: unknown }) => void>
 }
 
 interface StorageEntry {
@@ -100,8 +100,11 @@ function runtimeEntryOf(key: string): RuntimeEntry {
 
 function applyRuntime(key: string, value: unknown): void {
   const entry = runtimeEntryOf(key)
+  const oldValue = entry.value
   entry.value = value
-  for (const cb of [...entry.listeners]) cb(value)
+  // payload shape matches the Electron preload bridge exactly — renderer
+  // states consume one protocol regardless of host
+  for (const cb of [...entry.listeners]) cb({ key, newValue: value, oldValue })
 }
 
 export const localRuntimeBus = {
@@ -117,10 +120,15 @@ export const localRuntimeBus = {
   clear(key: string): void {
     const entry = runtimeEntries.get(key)
     if (!entry) return
-    for (const cb of [...entry.listeners]) cb(undefined)
+    const oldValue = entry.value
+    entry.value = undefined
+    for (const cb of [...entry.listeners]) cb({ key, newValue: undefined, oldValue })
     runtimeEntries.delete(key)
   },
-  onStateUpdated(key: string, cb: (value: unknown) => void): () => void {
+  onStateUpdated(
+    key: string,
+    cb: (payload: { key: string; newValue: unknown; oldValue: unknown }) => void,
+  ): () => void {
     const entry = runtimeEntryOf(key)
     entry.listeners.add(cb)
     return () => {

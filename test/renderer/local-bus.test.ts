@@ -70,7 +70,7 @@ describe('localRuntimeBus', () => {
   it('set notifies local listeners synchronously (loopback without channel echo)', async () => {
     const bus = await loadTab()
     const seen: unknown[] = []
-    bus.localRuntimeBus.onStateUpdated('theme', (v) => seen.push(v))
+    bus.localRuntimeBus.onStateUpdated('theme', (p) => seen.push(p.newValue))
     bus.localRuntimeBus.set('theme', 'dark')
     expect(seen).toEqual(['dark'])
   })
@@ -78,7 +78,7 @@ describe('localRuntimeBus', () => {
   it('unsubscribe stops notifications', async () => {
     const bus = await loadTab()
     const seen: unknown[] = []
-    const off = bus.localRuntimeBus.onStateUpdated('theme', (v) => seen.push(v))
+    const off = bus.localRuntimeBus.onStateUpdated('theme', (p) => seen.push(p.newValue))
     bus.localRuntimeBus.set('theme', 'dark')
     off()
     bus.localRuntimeBus.set('theme', 'blue')
@@ -89,7 +89,7 @@ describe('localRuntimeBus', () => {
     const bus = await loadTab()
     const seen: unknown[] = []
     bus.localRuntimeBus.set('theme', 'dark')
-    bus.localRuntimeBus.onStateUpdated('theme', (v) => seen.push(v))
+    bus.localRuntimeBus.onStateUpdated('theme', (p) => seen.push(p.newValue))
     bus.localRuntimeBus.clear('theme')
     expect(bus.localRuntimeBus.get('theme')).toBeUndefined()
     expect(seen).toEqual([undefined])
@@ -99,7 +99,7 @@ describe('localRuntimeBus', () => {
     const a = await loadTab()
     const b = await loadTab()
     const seenB: unknown[] = []
-    b.localRuntimeBus.onStateUpdated('theme', (v) => seenB.push(v))
+    b.localRuntimeBus.onStateUpdated('theme', (p) => seenB.push(p.newValue))
     a.localRuntimeBus.set('theme', 'dark')
     flushBus()
 
@@ -171,7 +171,7 @@ describe('cross-tab sync via BroadcastChannel', () => {
     const a = await loadTab()
     const b = await loadTab()
     const seen: unknown[] = []
-    b.localRuntimeBus.onStateUpdated('theme', (v) => seen.push(v))
+    b.localRuntimeBus.onStateUpdated('theme', (p) => seen.push(p.newValue))
 
     a.localRuntimeBus.set('theme', 'dark')
     flushBus()
@@ -220,7 +220,7 @@ describe('adversarial hardening', () => {
   it('garbage broadcast messages are ignored without throwing', async () => {
     const bus = await loadTab()
     const seen: unknown[] = []
-    bus.localRuntimeBus.onStateUpdated('theme', (v) => seen.push(v))
+    bus.localRuntimeBus.onStateUpdated('theme', (p) => seen.push(p.newValue))
     bus.localStorageBus.get('settings', payload({ theme: 'light' }, 1))
 
     const raw = new BroadcastChannel('cws:bus')
