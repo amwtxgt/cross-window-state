@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>cross-window-state</title>
+    <style>
+      body {
+        font-family: system-ui, sans-serif;
+        margin: 24px;
+        display: grid;
+        gap: 16px;
+      }
+      fieldset {
+        border: 1px solid #ccc;
+        border-radius: 8px;
+      }
+      #count {
+        font-size: 32px;
+        font-weight: 700;
+        min-width: 2ch;
+        display: inline-block;
+      }
+      button {
+        padding: 6px 14px;
+        cursor: pointer;
+      }
+      .muted {
+        color: #666;
+        font-size: 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <fieldset>
+      <legend>runtime state — shared across windows (memory only)</legend>
+      <span id="count">0</span>
+      <button id="inc" type="button">+1</button>
+      <button id="destroy" type="button">destroy</button>
+    </fieldset>
+
+    <fieldset>
+      <legend>storage state — persisted, survives restart</legend>
+      <label>
+        theme
+        <select id="theme">
+          <option value="light">light</option>
+          <option value="dark">dark</option>
+        </select>
+      </label>
+      <label> <input id="notifications" type="checkbox" /> notifications </label>
+      <div class="muted" id="settings-view">{}</div>
+    </fieldset>
+
+    <button id="open-window" type="button" hidden>open new window</button>
+    <script type="module" src="./index.ts"></script>
+  </body>
+</html>

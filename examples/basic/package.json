@@ -1,0 +1,18 @@
+{
+  "name": "cross-window-state-example-basic",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Basic Electron + web demo for cross-window-state; doubles as the e2e harness.",
+  "main": "out/main/index.js",
+  "scripts": {
+    "dev": "electron-vite dev",
+    "build": "electron-vite build",
+    "build:web": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "cross-window-state": "workspace:*",
+    "electron-vite": "^5.0.0",
+    "vite": "^8.2.2"
+  }
+}

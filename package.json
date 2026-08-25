@@ -2,39 +2,77 @@
   "name": "cross-window-state",
   "version": "0.0.0",
   "description": "One state, many windows, always in sync — shared reactive state for Electron multi-window apps and cross-tab web apps, with built-in persistence and versioned migration.",
-  "type": "module",
+  "keywords": [
+    "broadcast-channel",
+    "cross-tab",
+    "cross-window",
+    "electron",
+    "electron-state",
+    "ipc",
+    "multi-window",
+    "shared-state",
+    "state-management",
+    "vue"
+  ],
   "license": "MIT",
-  "sideEffects": false,
   "files": [
     "dist"
   ],
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/amwtxgt/cross-window-state.git"
+  },
+  "homepage": "https://amwtxgt.github.io/cross-window-state/",
+  "bugs": "https://github.com/amwtxgt/cross-window-state/issues",
+  "sideEffects": true,
   "main": "./dist/index.cjs",
-  "module": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
   "exports": {
     ".": {
-      "import": "./dist/index.js",
-      "require": "./dist/index.cjs",
-      "types": "./dist/index.d.ts"
+      "import": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
     },
     "./main": {
-      "import": "./dist/main/index.js",
-      "require": "./dist/main/index.cjs",
-      "types": "./dist/main/index.d.ts"
+      "import": {
+        "types": "./dist/main/index.d.mts",
+        "default": "./dist/main/index.mjs"
+      },
+      "require": {
+        "types": "./dist/main/index.d.cts",
+        "default": "./dist/main/index.cjs"
+      }
     },
     "./preload": {
-      "require": "./dist/preload/index.cjs",
-      "types": "./dist/preload/index.d.ts"
+      "types": "./dist/preload/index.d.cts",
+      "default": "./dist/preload/index.cjs"
     },
     "./renderer": {
-      "import": "./dist/renderer/index.js",
-      "require": "./dist/renderer/index.cjs",
-      "types": "./dist/renderer/index.d.ts"
+      "import": {
+        "types": "./dist/renderer/index.d.mts",
+        "default": "./dist/renderer/index.mjs"
+      },
+      "require": {
+        "types": "./dist/renderer/index.d.cts",
+        "default": "./dist/renderer/index.cjs"
+      }
     },
     "./vue": {
-      "import": "./dist/vue/index.js",
-      "require": "./dist/vue/index.cjs",
-      "types": "./dist/vue/index.d.ts"
+      "import": {
+        "types": "./dist/vue/index.d.mts",
+        "default": "./dist/vue/index.mjs"
+      },
+      "require": {
+        "types": "./dist/vue/index.d.cts",
+        "default": "./dist/vue/index.cjs"
+      }
     },
     "./package.json": "./package.json"
   },
@@ -42,28 +80,15 @@
     "build": "tsdown",
     "test": "vitest run",
     "test:watch": "vitest",
-    "e2e": "playwright test -c test/e2e/playwright.config.ts",
+    "e2e": "pnpm build && pnpm --filter cross-window-state-example-basic build && playwright test -c test/e2e/playwright.config.ts",
     "typecheck": "tsc --noEmit",
     "lint": "oxlint && oxfmt --check .",
     "format": "oxfmt",
     "publint": "publint",
-    "attw": "attw --pack",
+    "attw": "attw --pack --profile node16",
     "docs:build": "vitepress build docs",
     "docs:dev": "vitepress dev docs",
     "release": "changeset publish"
-  },
-  "peerDependencies": {
-    "electron": ">=28",
-    "vue": ">=3.3"
-  },
-  "peerDependenciesMeta": {
-    "electron": {
-      "optional": true
-    },
-    "vue": {
-      "optional": true,
-      "inject": false
-    }
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.5",
@@ -79,23 +104,25 @@
     "publint": "^0.3.24",
     "tsdown": "^0.22.14",
     "typescript": "^7.0.2",
+    "unrun": "^0.3.1",
     "vite": "^8.2.2",
     "vitepress": "^1.6.4",
     "vitest": "^4.1.11",
     "vue": "^3.5.41"
   },
-  "keywords": [
-    "electron",
-    "electron-state",
-    "cross-window",
-    "cross-tab",
-    "multi-window",
-    "broadcast-channel",
-    "state-management",
-    "shared-state",
-    "vue",
-    "ipc"
-  ],
+  "peerDependencies": {
+    "electron": ">=28",
+    "vue": ">=3.3"
+  },
+  "peerDependenciesMeta": {
+    "electron": {
+      "optional": true
+    },
+    "vue": {
+      "optional": true,
+      "inject": false
+    }
+  },
   "engines": {
     "node": ">=22"
   }

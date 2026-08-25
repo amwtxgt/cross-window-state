@@ -4,5 +4,18 @@
     "correctness": "error",
     "suspicious": "error"
   },
-  "ignorePatterns": ["dist", "node_modules", "coverage", "docs", "examples", "test-results", "playwright-report"]
+  "rules": {
+    "no-underscore-dangle": "off",
+    "unicorn/no-useless-spread": "off",
+    "unicorn/require-post-message-target-origin": "off"
+  },
+  "ignorePatterns": [
+    "dist",
+    "node_modules",
+    "coverage",
+    "docs",
+    "examples",
+    "test-results",
+    "playwright-report"
+  ]
 }

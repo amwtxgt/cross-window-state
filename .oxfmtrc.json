@@ -1,0 +1,14 @@
+{
+  "ignore": [
+    "dist",
+    "coverage",
+    "node_modules",
+    "docs/.vitepress/dist",
+    "docs/.vitepress/cache",
+    "examples/*/dist-web",
+    "examples/*/out",
+    "test-results",
+    "playwright-report",
+    "pnpm-lock.yaml"
+  ]
+}
