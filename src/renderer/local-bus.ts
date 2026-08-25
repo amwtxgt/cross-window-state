@@ -144,9 +144,20 @@ interface PersistedShape {
   data: Record<string, unknown>
 }
 
+function getStorage(): Storage | null {
+  // SSR (no window) or locked-down environments: degrade to memory-only
+  try {
+    return typeof window !== 'undefined' ? window.localStorage : null
+  } catch {
+    return null
+  }
+}
+
 function readPersisted(name: string): PersistedShape | null {
   try {
-    const raw = window.localStorage.getItem(STORAGE_PREFIX + name)
+    const storage = getStorage()
+    if (!storage) return null
+    const raw = storage.getItem(STORAGE_PREFIX + name)
     if (!raw) return null
     const parsed: unknown = JSON.parse(raw)
     if (
@@ -166,7 +177,9 @@ function readPersisted(name: string): PersistedShape | null {
 
 function persistEntry(name: string, entry: StorageEntry): void {
   try {
-    window.localStorage.setItem(
+    const storage = getStorage()
+    if (!storage) return
+    storage.setItem(
       STORAGE_PREFIX + name,
       JSON.stringify({ version: entry.version, data: entry.data }),
     )
