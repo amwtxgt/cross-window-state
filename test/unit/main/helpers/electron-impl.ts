@@ -7,9 +7,11 @@
  *     return { ...m.electronMock }
  *   })
  *
- * The mock is a per-test-file singleton; call `resetElectronMock()` in
- * beforeEach to get a fresh tmp userData dir, handler map and webContents
- * registry.
+ * Mock state lives on `globalThis` so it stays shared across
+ * `vi.resetModules()` cycles — the vi.mock factory runs only once and keeps
+ * closure over the first module instance, while tests re-import helpers for
+ * fresh module registries. Call `resetElectronMock()` in beforeEach to get
+ * a fresh tmp userData dir, handler map and webContents registry.
  */
 import { mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
@@ -28,16 +30,27 @@ export interface FakeIpcEvent {
   returnValue?: unknown
 }
 
-const handlers = new Map<string, (event: FakeIpcEvent, ...args: unknown[]) => unknown>()
-const webContentsRegistry = new Map<number, FakeWebContents>()
-let userDataPath = ''
+interface MockState {
+  handlers: Map<string, (event: FakeIpcEvent, ...args: unknown[]) => unknown>
+  webContents: Map<number, FakeWebContents>
+  userDataPath: string
+}
+
+const globalKey = '__cwsElectronMockState__'
+const state: MockState =
+  ((globalThis as Record<string, unknown>)[globalKey] as MockState | undefined) ??
+  (((globalThis as Record<string, unknown>)[globalKey] = {
+    handlers: new Map(),
+    webContents: new Map(),
+    userDataPath: '',
+  }) as MockState)
 
 export const electronMock = {
   app: {
     getPath: vi.fn((name: string): string => {
       if (name === 'userData') {
-        if (!userDataPath) userDataPath = mkdtempSync(join(tmpdir(), 'cws-test-'))
-        return userDataPath
+        if (!state.userDataPath) state.userDataPath = mkdtempSync(join(tmpdir(), 'cws-test-'))
+        return state.userDataPath
       }
       throw new Error(`electron-mock: unexpected getPath(${name})`)
     }),
@@ -45,32 +58,34 @@ export const electronMock = {
   },
   ipcMain: {
     on: vi.fn((ch: string, handler: (event: FakeIpcEvent, ...args: unknown[]) => unknown) => {
-      handlers.set(ch, handler)
+      state.handlers.set(ch, handler)
     }),
     handle: vi.fn(),
   },
   webContents: {
-    fromId: vi.fn((id: number): FakeWebContents | undefined => webContentsRegistry.get(id)),
+    fromId: vi.fn((id: number): FakeWebContents | undefined => state.webContents.get(id)),
   },
 }
 
 /** Fresh state: new tmp userData dir, empty handlers and webContents. */
 export function resetElectronMock(): string {
-  if (userDataPath) {
-    rmSync(userDataPath, { recursive: true, force: true })
+  if (state.userDataPath) {
+    rmSync(state.userDataPath, { recursive: true, force: true })
   }
-  userDataPath = mkdtempSync(join(tmpdir(), 'cws-test-'))
-  handlers.clear()
-  webContentsRegistry.clear()
-  return userDataPath
+  state.userDataPath = mkdtempSync(join(tmpdir(), 'cws-test-'))
+  state.handlers.clear()
+  state.webContents.clear()
+  return state.userDataPath
 }
 
 export function currentUserDataPath(): string {
-  return userDataPath
+  return state.userDataPath
 }
 
 /** Create a fake webContents that `webContents.fromId` will resolve. */
 export function makeFakeWebContents(id: number): FakeWebContents {
+  const existing = state.webContents.get(id)
+  if (existing) return existing
   const wc: FakeWebContents = {
     id,
     destroyed: false,
@@ -79,21 +94,18 @@ export function makeFakeWebContents(id: number): FakeWebContents {
       return this.destroyed
     },
   }
-  webContentsRegistry.set(id, wc)
+  state.webContents.set(id, wc)
   return wc
 }
 
 /** Build the ipcMain event object a renderer message would carry. */
 export function makeIpcEvent(senderId: number): FakeIpcEvent {
-  // Reuse an existing fake so the event's sender is the same object the
-  // test holds a reference to (registry keeps one entry per id).
-  const existing = webContentsRegistry.get(senderId)
-  return { sender: existing ?? makeFakeWebContents(senderId) }
+  return { sender: makeFakeWebContents(senderId) }
 }
 
 /** Invoke a registered ipcMain.on handler as the renderer message would. */
 export function invokeHandler(ch: string, event: FakeIpcEvent, ...args: unknown[]): unknown {
-  const handler = handlers.get(ch)
+  const handler = state.handlers.get(ch)
   if (!handler) throw new Error(`electron-mock: no handler registered for ${ch}`)
   return handler(event, ...args)
 }
