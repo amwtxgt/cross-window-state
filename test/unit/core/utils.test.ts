@@ -42,6 +42,28 @@ describe('debounce', () => {
     vi.advanceTimersByTime(600)
     expect(fn).not.toHaveBeenCalled()
   })
+
+  it('flush executes the pending invocation immediately', () => {
+    vi.useFakeTimers()
+    const fn = vi.fn()
+    const d = debounce(fn, 300)
+    d(1)
+    d(2)
+    d.flush()
+    expect(fn).toHaveBeenCalledTimes(1)
+    expect(fn).toHaveBeenCalledWith(2)
+    vi.advanceTimersByTime(600)
+    expect(fn).toHaveBeenCalledTimes(1) // not re-fired after flush
+  })
+
+  it('flush without a pending invocation is a no-op', () => {
+    vi.useFakeTimers()
+    const fn = vi.fn()
+    const d = debounce(fn, 300)
+    d.flush()
+    d.cancel()
+    expect(fn).not.toHaveBeenCalled()
+  })
 })
 
 describe('deepEqual', () => {

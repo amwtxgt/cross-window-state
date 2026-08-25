@@ -7,6 +7,8 @@ export interface DebouncedFunction<Args extends unknown[]> {
   (...args: Args): void
   /** Discard the pending invocation, if any. */
   cancel(): void
+  /** Run the pending invocation immediately, if any. */
+  flush(): void
 }
 
 /** Trailing-edge debounce. Leading calls are intentionally not supported. */
@@ -15,11 +17,15 @@ export function debounce<Args extends unknown[]>(
   wait: number,
 ): DebouncedFunction<Args> {
   let timer: ReturnType<typeof setTimeout> | undefined
+  let lastArgs: Args | undefined
   const wrapped = ((...args: Args) => {
+    lastArgs = args
     if (timer !== undefined) clearTimeout(timer)
     timer = setTimeout(() => {
       timer = undefined
-      fn(...args)
+      const pending = lastArgs
+      lastArgs = undefined
+      if (pending) fn(...pending)
     }, wait)
   }) as DebouncedFunction<Args>
   wrapped.cancel = () => {
@@ -27,6 +33,16 @@ export function debounce<Args extends unknown[]>(
       clearTimeout(timer)
       timer = undefined
     }
+    lastArgs = undefined
+  }
+  wrapped.flush = () => {
+    if (timer !== undefined) {
+      clearTimeout(timer)
+      timer = undefined
+    }
+    const pending = lastArgs
+    lastArgs = undefined
+    if (pending) fn(...pending)
   }
   return wrapped
 }
