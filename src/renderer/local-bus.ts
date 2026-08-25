@@ -15,51 +15,51 @@
  */
 
 interface RuntimeEntry {
-  value: unknown
-  listeners: Set<(payload: { key: string; newValue: unknown; oldValue: unknown }) => void>
+  value: unknown;
+  listeners: Set<(payload: { key: string; newValue: unknown; oldValue: unknown }) => void>;
 }
 
 interface StorageEntry {
-  version: number
-  data: Record<string, unknown>
-  keyListeners: Map<string, Set<(value: unknown) => void>>
+  version: number;
+  data: Record<string, unknown>;
+  keyListeners: Map<string, Set<(value: unknown) => void>>;
 }
 
 interface BusMessage {
-  kind: 'runtime' | 'storage'
-  name: string
-  value?: unknown
-  patch?: Record<string, unknown>
+  kind: "runtime" | "storage";
+  name: string;
+  value?: unknown;
+  patch?: Record<string, unknown>;
 }
 
-const BUS_CHANNEL = 'cws:bus'
-const STORAGE_PREFIX = 'cws:'
+const BUS_CHANNEL = "cws:bus";
+const STORAGE_PREFIX = "cws:";
 
-const runtimeEntries = new Map<string, RuntimeEntry>()
-const storageEntries = new Map<string, StorageEntry>()
+const runtimeEntries = new Map<string, RuntimeEntry>();
+const storageEntries = new Map<string, StorageEntry>();
 
 // tri-state: undefined = not attempted, null = unsupported, channel = live
-let busChannel: BroadcastChannel | null | undefined
+let busChannel: BroadcastChannel | null | undefined;
 
 function getBusChannel(): BroadcastChannel | null {
-  if (busChannel !== undefined) return busChannel
+  if (busChannel !== undefined) return busChannel;
   try {
-    const ch = new BroadcastChannel(BUS_CHANNEL)
-    ch.onmessage = (event: MessageEvent) => {
-      applyBusMessage(event.data)
-    }
-    busChannel = ch
+    const ch = new BroadcastChannel(BUS_CHANNEL);
+    ch.addEventListener("message", (event) => {
+      applyBusMessage((event as MessageEvent).data);
+    });
+    busChannel = ch;
   } catch {
-    busChannel = null // no BroadcastChannel: degrade to single-tab
+    busChannel = null; // no BroadcastChannel: degrade to single-tab
   }
-  return busChannel
+  return busChannel;
 }
 
 function postBus(message: BusMessage): void {
-  const ch = getBusChannel()
+  const ch = getBusChannel();
   if (ch) {
     try {
-      ch.postMessage(message)
+      ch.postMessage(message);
     } catch {
       // structured clone failure for exotic values: local page still synced
     }
@@ -68,154 +68,154 @@ function postBus(message: BusMessage): void {
 
 // Create the channel eagerly unless an Electron preload bridge exists —
 // a subscribe-only tab must not miss broadcasts sent before its first set.
-if (typeof window === 'undefined' || typeof window.__crossWindowState__ === 'undefined') {
-  getBusChannel()
+if (typeof window === "undefined" || typeof window.__crossWindowState__ === "undefined") {
+  getBusChannel();
 }
 
 function applyBusMessage(raw: unknown): void {
-  if (!raw || typeof raw !== 'object') return
-  const msg = raw as Partial<BusMessage>
-  if (msg.kind === 'runtime' && typeof msg.name === 'string') {
-    applyRuntime(msg.name, msg.value)
+  if (!raw || typeof raw !== "object") return;
+  const msg = raw as Partial<BusMessage>;
+  if (msg.kind === "runtime" && typeof msg.name === "string") {
+    applyRuntime(msg.name, msg.value);
   } else if (
-    msg.kind === 'storage' &&
-    typeof msg.name === 'string' &&
-    typeof msg.patch === 'object' &&
+    msg.kind === "storage" &&
+    typeof msg.name === "string" &&
+    typeof msg.patch === "object" &&
     msg.patch !== null
   ) {
-    applyStoragePatch(msg.name, msg.patch)
+    applyStoragePatch(msg.name, msg.patch);
   }
 }
 
 // ---- runtime ----------------------------------------------------------
 
 function runtimeEntryOf(key: string): RuntimeEntry {
-  let entry = runtimeEntries.get(key)
+  let entry = runtimeEntries.get(key);
   if (!entry) {
-    entry = { value: undefined, listeners: new Set() }
-    runtimeEntries.set(key, entry)
+    entry = { value: undefined, listeners: new Set() };
+    runtimeEntries.set(key, entry);
   }
-  return entry
+  return entry;
 }
 
 function applyRuntime(key: string, value: unknown): void {
-  const entry = runtimeEntryOf(key)
-  const oldValue = entry.value
-  entry.value = value
+  const entry = runtimeEntryOf(key);
+  const oldValue = entry.value;
+  entry.value = value;
   // payload shape matches the Electron preload bridge exactly — renderer
   // states consume one protocol regardless of host
-  for (const cb of [...entry.listeners]) cb({ key, newValue: value, oldValue })
+  for (const cb of [...entry.listeners]) cb({ key, newValue: value, oldValue });
 }
 
 export const localRuntimeBus = {
   get(key: string): unknown {
-    return runtimeEntries.get(key)?.value
+    return runtimeEntries.get(key)?.value;
   },
   set(key: string, value: unknown): void {
-    applyRuntime(key, value) // local page first (channel does not echo)
-    postBus({ kind: 'runtime', name: key, value })
+    applyRuntime(key, value); // local page first (channel does not echo)
+    postBus({ kind: "runtime", name: key, value });
   },
   /** Local-page teardown only: notify own listeners with undefined, drop the
    *  entry. Never broadcast — other tabs keep their state. */
   clear(key: string): void {
-    const entry = runtimeEntries.get(key)
-    if (!entry) return
-    const oldValue = entry.value
-    entry.value = undefined
-    for (const cb of [...entry.listeners]) cb({ key, newValue: undefined, oldValue })
-    runtimeEntries.delete(key)
+    const entry = runtimeEntries.get(key);
+    if (!entry) return;
+    const oldValue = entry.value;
+    entry.value = undefined;
+    for (const cb of [...entry.listeners]) cb({ key, newValue: undefined, oldValue });
+    runtimeEntries.delete(key);
   },
   onStateUpdated(
     key: string,
     cb: (payload: { key: string; newValue: unknown; oldValue: unknown }) => void,
   ): () => void {
-    const entry = runtimeEntryOf(key)
-    entry.listeners.add(cb)
+    const entry = runtimeEntryOf(key);
+    entry.listeners.add(cb);
     return () => {
-      entry.listeners.delete(cb)
-    }
+      entry.listeners.delete(cb);
+    };
   },
-}
+};
 
 // ---- storage ----------------------------------------------------------
 
 interface PersistedShape {
-  version: number
-  data: Record<string, unknown>
+  version: number;
+  data: Record<string, unknown>;
 }
 
 function getStorage(): Storage | null {
   // SSR (no window) or locked-down environments: degrade to memory-only
   try {
-    return typeof window !== 'undefined' ? window.localStorage : null
+    return typeof window !== "undefined" ? window.localStorage : null;
   } catch {
-    return null
+    return null;
   }
 }
 
 function readPersisted(name: string): PersistedShape | null {
   try {
-    const storage = getStorage()
-    if (!storage) return null
-    const raw = storage.getItem(STORAGE_PREFIX + name)
-    if (!raw) return null
-    const parsed: unknown = JSON.parse(raw)
+    const storage = getStorage();
+    if (!storage) return null;
+    const raw = storage.getItem(STORAGE_PREFIX + name);
+    if (!raw) return null;
+    const parsed: unknown = JSON.parse(raw);
     if (
-      typeof parsed !== 'object' ||
+      typeof parsed !== "object" ||
       parsed === null ||
-      typeof (parsed as PersistedShape).version !== 'number' ||
-      typeof (parsed as PersistedShape).data !== 'object' ||
+      typeof (parsed as PersistedShape).version !== "number" ||
+      typeof (parsed as PersistedShape).data !== "object" ||
       (parsed as PersistedShape).data === null
     ) {
-      return null
+      return null;
     }
-    return parsed as PersistedShape
+    return parsed as PersistedShape;
   } catch {
-    return null
+    return null;
   }
 }
 
 function persistEntry(name: string, entry: StorageEntry): void {
   try {
-    const storage = getStorage()
-    if (!storage) return
+    const storage = getStorage();
+    if (!storage) return;
     storage.setItem(
       STORAGE_PREFIX + name,
       JSON.stringify({ version: entry.version, data: entry.data }),
-    )
+    );
   } catch {
     // quota exceeded / private mode: keep memory state as source of truth
   }
 }
 
 function storageEntryOf(name: string): StorageEntry {
-  let entry = storageEntries.get(name)
+  let entry = storageEntries.get(name);
   if (!entry) {
     // Restore from localStorage keeping the WRITER's version — a broadcast
     // can arrive before this tab ever calls get(); losing the version here
     // would make subsequent reads mismatch and silently reset data.
-    const persisted = readPersisted(name)
+    const persisted = readPersisted(name);
     entry = {
       version: persisted?.version ?? 0,
-      data: { ...(persisted?.data ?? {}) },
+      data: { ...persisted?.data },
       keyListeners: new Map(),
-    }
-    storageEntries.set(name, entry)
+    };
+    storageEntries.set(name, entry);
   }
-  return entry
+  return entry;
 }
 
 function notifyStorageKey(entry: StorageEntry, key: string): void {
-  const listeners = entry.keyListeners.get(key)
-  if (!listeners) return
-  for (const cb of [...listeners]) cb(entry.data[key])
+  const listeners = entry.keyListeners.get(key);
+  if (!listeners) return;
+  for (const cb of [...listeners]) cb(entry.data[key]);
 }
 
 function applyStoragePatch(name: string, patch: Record<string, unknown>): void {
-  const entry = storageEntryOf(name)
-  entry.data = { ...entry.data, ...patch }
-  persistEntry(name, entry)
-  for (const key of Object.keys(patch)) notifyStorageKey(entry, key)
+  const entry = storageEntryOf(name);
+  entry.data = { ...entry.data, ...patch };
+  persistEntry(name, entry);
+  for (const key of Object.keys(patch)) notifyStorageKey(entry, key);
 }
 
 export const localStorageBus = {
@@ -228,36 +228,36 @@ export const localStorageBus = {
     name: string,
     options: { defaults: Record<string, unknown>; version: number },
   ): Record<string, unknown> {
-    const persisted = readPersisted(name)
+    const persisted = readPersisted(name);
     if (persisted && persisted.version === options.version) {
-      const data = { ...options.defaults, ...persisted.data }
-      const entry = storageEntryOf(name)
-      entry.version = options.version
-      entry.data = { ...data }
-      return { ...data }
+      const data = { ...options.defaults, ...persisted.data };
+      const entry = storageEntryOf(name);
+      entry.version = options.version;
+      entry.data = { ...data };
+      return { ...data };
     }
-    const data = { ...options.defaults }
-    const entry = storageEntryOf(name)
-    entry.version = options.version
-    entry.data = { ...data }
-    persistEntry(name, entry)
-    return { ...data }
+    const data = { ...options.defaults };
+    const entry = storageEntryOf(name);
+    entry.version = options.version;
+    entry.data = { ...data };
+    persistEntry(name, entry);
+    return { ...data };
   },
   set(name: string, patch: Record<string, unknown>, key?: string): void {
-    const normalized = key !== undefined ? { [key]: patch[key] } : { ...patch }
-    applyStoragePatch(name, normalized) // local page first
-    postBus({ kind: 'storage', name, patch: normalized })
+    const normalized = key !== undefined ? { [key]: patch[key] } : { ...patch };
+    applyStoragePatch(name, normalized); // local page first
+    postBus({ kind: "storage", name, patch: normalized });
   },
   onStateUpdated(name: string, key: string, cb: (value: unknown) => void): () => void {
-    const entry = storageEntryOf(name)
-    let listeners = entry.keyListeners.get(key)
+    const entry = storageEntryOf(name);
+    let listeners = entry.keyListeners.get(key);
     if (!listeners) {
-      listeners = new Set()
-      entry.keyListeners.set(key, listeners)
+      listeners = new Set();
+      entry.keyListeners.set(key, listeners);
     }
-    listeners.add(cb)
+    listeners.add(cb);
     return () => {
-      listeners.delete(cb)
-    }
+      listeners.delete(cb);
+    };
   },
-}
+};

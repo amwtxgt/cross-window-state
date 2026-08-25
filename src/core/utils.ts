@@ -4,11 +4,11 @@
  */
 
 export interface DebouncedFunction<Args extends unknown[]> {
-  (...args: Args): void
+  (...args: Args): void;
   /** Discard the pending invocation, if any. */
-  cancel(): void
+  cancel(): void;
   /** Run the pending invocation immediately, if any. */
-  flush(): void
+  flush(): void;
 }
 
 /** Trailing-edge debounce. Leading calls are intentionally not supported. */
@@ -16,42 +16,42 @@ export function debounce<Args extends unknown[]>(
   fn: (...args: Args) => void,
   wait: number,
 ): DebouncedFunction<Args> {
-  let timer: ReturnType<typeof setTimeout> | undefined
-  let lastArgs: Args | undefined
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  let lastArgs: Args | undefined;
   const wrapped = ((...args: Args) => {
-    lastArgs = args
-    if (timer !== undefined) clearTimeout(timer)
+    lastArgs = args;
+    if (timer !== undefined) clearTimeout(timer);
     timer = setTimeout(() => {
-      timer = undefined
-      const pending = lastArgs
-      lastArgs = undefined
-      if (pending) fn(...pending)
-    }, wait)
-  }) as DebouncedFunction<Args>
+      timer = undefined;
+      const pending = lastArgs;
+      lastArgs = undefined;
+      if (pending) fn(...pending);
+    }, wait);
+  }) as DebouncedFunction<Args>;
   wrapped.cancel = () => {
     if (timer !== undefined) {
-      clearTimeout(timer)
-      timer = undefined
+      clearTimeout(timer);
+      timer = undefined;
     }
-    lastArgs = undefined
-  }
+    lastArgs = undefined;
+  };
   wrapped.flush = () => {
     if (timer !== undefined) {
-      clearTimeout(timer)
-      timer = undefined
+      clearTimeout(timer);
+      timer = undefined;
     }
-    const pending = lastArgs
-    lastArgs = undefined
-    if (pending) fn(...pending)
-  }
-  return wrapped
+    const pending = lastArgs;
+    lastArgs = undefined;
+    if (pending) fn(...pending);
+  };
+  return wrapped;
 }
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
-  if (typeof value !== 'object' || value === null) return false
-  if (Array.isArray(value)) return false
+  if (typeof value !== "object" || value === null) return false;
+  if (Array.isArray(value)) return false;
   // Class instances (Date, Map, ...) are compared by reference only.
-  return Object.getPrototypeOf(value) === Object.prototype || Object.getPrototypeOf(value) === null
+  return Object.getPrototypeOf(value) === Object.prototype || Object.getPrototypeOf(value) === null;
 }
 
 /**
@@ -61,36 +61,36 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
  * looping forever — good enough for the defaults-validation use case.
  */
 export function deepEqual(a: unknown, b: unknown): boolean {
-  return deepEqualWithCycleCheck(a, b, new WeakSet<object>())
+  return deepEqualWithCycleCheck(a, b, new WeakSet<object>());
 }
 
 function deepEqualWithCycleCheck(a: unknown, b: unknown, path: WeakSet<object>): boolean {
-  if (Object.is(a, b)) return true
-  if (typeof a !== 'object' || a === null) return false
-  if (typeof b !== 'object' || b === null) return false
+  if (Object.is(a, b)) return true;
+  if (typeof a !== "object" || a === null) return false;
+  if (typeof b !== "object" || b === null) return false;
   if (Array.isArray(a) || Array.isArray(b)) {
-    if (!Array.isArray(a) || !Array.isArray(b)) return false
-    if (path.has(a)) return false
-    path.add(a)
+    if (!Array.isArray(a) || !Array.isArray(b)) return false;
+    if (path.has(a)) return false;
+    path.add(a);
     const ok =
-      a.length === b.length && a.every((item, i) => deepEqualWithCycleCheck(item, b[i], path))
-    path.delete(a)
-    return ok
+      a.length === b.length && a.every((item, i) => deepEqualWithCycleCheck(item, b[i], path));
+    path.delete(a);
+    return ok;
   }
-  if (!isPlainObject(a) || !isPlainObject(b)) return false
-  if (path.has(a)) return false
-  path.add(a)
-  const keysA = Object.keys(a)
-  const keysB = Object.keys(b)
+  if (!isPlainObject(a) || !isPlainObject(b)) return false;
+  if (path.has(a)) return false;
+  path.add(a);
+  const keysA = Object.keys(a);
+  const keysB = Object.keys(b);
   const ok =
     keysA.length === keysB.length &&
     keysA.every(
       (key) =>
         key in b && // distinguishes `{a: undefined}` from `{}`
         deepEqualWithCycleCheck(a[key], b[key], path),
-    )
-  path.delete(a)
-  return ok
+    );
+  path.delete(a);
+  return ok;
 }
 
 /**
@@ -113,29 +113,29 @@ export function createProxyState<T extends Record<string, unknown>>(
 ): T {
   return new Proxy(data, {
     get(target, prop, receiver) {
-      return Reflect.get(target, prop, receiver)
+      return Reflect.get(target, prop, receiver);
     },
     set(target, prop, value) {
-      const ok = Reflect.set(target, prop, value)
-      if (ok && typeof prop === 'string') onSet(prop, value)
-      return ok
+      const ok = Reflect.set(target, prop, value);
+      if (ok && typeof prop === "string") onSet(prop, value);
+      return ok;
     },
     deleteProperty(target, prop) {
-      const ok = Reflect.deleteProperty(target, prop)
-      if (ok && typeof prop === 'string') {
-        if (onDelete) onDelete(prop)
-        else onSet(prop, undefined)
+      const ok = Reflect.deleteProperty(target, prop);
+      if (ok && typeof prop === "string") {
+        if (onDelete) onDelete(prop);
+        else onSet(prop, undefined);
       }
-      return ok
+      return ok;
     },
     has(target, prop) {
-      return Reflect.has(target, prop)
+      return Reflect.has(target, prop);
     },
     ownKeys(target) {
-      return Reflect.ownKeys(target)
+      return Reflect.ownKeys(target);
     },
     getOwnPropertyDescriptor(target, prop) {
-      return Reflect.getOwnPropertyDescriptor(target, prop)
+      return Reflect.getOwnPropertyDescriptor(target, prop);
     },
-  })
+  });
 }

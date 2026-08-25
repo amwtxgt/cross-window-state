@@ -2,12 +2,24 @@
   "name": "cross-window-state",
   "version": "0.0.0",
   "description": "One state, many windows, always in sync — shared reactive state for Electron multi-window apps and cross-tab web apps, with built-in persistence and versioned migration.",
-  "type": "module",
+  "keywords": [
+    "broadcast-channel",
+    "cross-tab",
+    "cross-window",
+    "electron",
+    "electron-state",
+    "ipc",
+    "multi-window",
+    "shared-state",
+    "state-management",
+    "vue"
+  ],
   "license": "MIT",
-  "sideEffects": true,
   "files": [
     "dist"
   ],
+  "type": "module",
+  "sideEffects": true,
   "main": "./dist/index.cjs",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.mts",
@@ -72,19 +84,6 @@
     "docs:dev": "vitepress dev docs",
     "release": "changeset publish"
   },
-  "peerDependencies": {
-    "electron": ">=28",
-    "vue": ">=3.3"
-  },
-  "peerDependenciesMeta": {
-    "electron": {
-      "optional": true
-    },
-    "vue": {
-      "optional": true,
-      "inject": false
-    }
-  },
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.5",
     "@changesets/changelog-github": "^1.0.0",
@@ -105,18 +104,19 @@
     "vitest": "^4.1.11",
     "vue": "^3.5.41"
   },
-  "keywords": [
-    "electron",
-    "electron-state",
-    "cross-window",
-    "cross-tab",
-    "multi-window",
-    "broadcast-channel",
-    "state-management",
-    "shared-state",
-    "vue",
-    "ipc"
-  ],
+  "peerDependencies": {
+    "electron": ">=28",
+    "vue": ">=3.3"
+  },
+  "peerDependenciesMeta": {
+    "electron": {
+      "optional": true
+    },
+    "vue": {
+      "optional": true,
+      "inject": false
+    }
+  },
   "engines": {
     "node": ">=22"
   }

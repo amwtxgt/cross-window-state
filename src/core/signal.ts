@@ -7,15 +7,15 @@
 
 export interface Signal<T> {
   /** Current value. */
-  readonly value: T
+  readonly value: T;
   /** Set a new value and notify subscribers (unless identical, see options). */
-  set(next: T): void
+  set(next: T): void;
   /**
    * Subscribe to value changes. Returns an unsubscribe function.
    * Callbacks are isolated: a throwing listener is reported via
    * `console.error` and does not affect other listeners or later sets.
    */
-  subscribe(cb: (newVal: T, oldVal: T | undefined) => void): () => void
+  subscribe(cb: (newVal: T, oldVal: T | undefined) => void): () => void;
 }
 
 export interface SignalOptions {
@@ -24,68 +24,68 @@ export interface SignalOptions {
    * `always`: notify on every set, even for identical references — use when
    * callers mutate objects in place and re-assign the same reference.
    */
-  equality?: 'identity' | 'always'
+  equality?: "identity" | "always";
 }
 
 export function createSignal<T>(initial: T, options?: SignalOptions): Signal<T> {
-  const equality = options?.equality ?? 'identity'
-  let value = initial
-  const listeners = new Set<(newVal: T, oldVal: T | undefined) => void>()
+  const equality = options?.equality ?? "identity";
+  let value = initial;
+  const listeners = new Set<(newVal: T, oldVal: T | undefined) => void>();
 
-  let notifying = false
-  let pending: T | undefined
-  let hasPending = false
+  let notifying = false;
+  let pending: T | undefined;
+  let hasPending = false;
 
   function notify(next: T, old: T | undefined): void {
-    notifying = true
+    notifying = true;
     try {
       for (const cb of [...listeners]) {
         try {
-          cb(next, old)
+          cb(next, old);
         } catch (err) {
-          console.error('[cws:signal] listener error:', err)
+          console.error("[cws:signal] listener error:", err);
         }
       }
     } finally {
-      notifying = false
+      notifying = false;
       // Re-entrant sets during notification are queued, not recursed, so a
       // listener that writes back cannot overflow the stack or double-fire.
       if (hasPending) {
-        hasPending = false
-        const queued = pending as T
-        doSet(queued)
+        hasPending = false;
+        const queued = pending as T;
+        doSet(queued);
       }
     }
   }
 
   function doSet(next: T): void {
-    const old = value
-    if (equality === 'identity' && Object.is(old, next)) return
-    value = next
-    notify(next, old)
+    const old = value;
+    if (equality === "identity" && Object.is(old, next)) return;
+    value = next;
+    notify(next, old);
   }
 
   return {
     get value() {
-      return value
+      return value;
     },
     set(next) {
       if (notifying) {
         // Keep only the latest re-entrant value; intermediate ones collapse.
-        pending = next
-        hasPending = true
-        if (equality === 'identity' && Object.is(value, next)) {
-          hasPending = false
+        pending = next;
+        hasPending = true;
+        if (equality === "identity" && Object.is(value, next)) {
+          hasPending = false;
         }
-        return
+        return;
       }
-      doSet(next)
+      doSet(next);
     },
     subscribe(cb) {
-      listeners.add(cb)
+      listeners.add(cb);
       return () => {
-        listeners.delete(cb)
-      }
+        listeners.delete(cb);
+      };
     },
-  }
+  };
 }

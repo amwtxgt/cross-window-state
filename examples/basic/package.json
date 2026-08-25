@@ -1,7 +1,7 @@
 {
   "name": "cross-window-state-example-basic",
-  "private": true,
   "version": "0.0.0",
+  "private": true,
   "description": "Basic Electron + web demo for cross-window-state; doubles as the e2e harness.",
   "main": "out/main/index.js",
   "scripts": {
