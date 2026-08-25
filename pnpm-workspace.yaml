@@ -1,4 +1,7 @@
 packages:
+  # explicit "." — changesets (@manypkg) does not implicitly include the
+  # root package when resolving the workspace
+  - .
   - examples/*
 
 allowBuilds:
