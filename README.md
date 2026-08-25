@@ -12,7 +12,7 @@ Shared reactive state for Electron multi-window apps and cross-tab web apps — 
 - **One source of truth** — every window and the main process share the same state; a write anywhere is visible everywhere immediately.
 - **Reactive by default** — subscribe with `.watch()`, or use the optional Vue bridge; no polling, no manual refresh.
 - **Zero-difference DX** — `createRuntimeState` / `createStorageState` have identical names, signatures and semantics on main and renderer. The transport (IPC vs. BroadcastChannel) is an implementation detail.
-- **Dual host** — the same renderer code runs in Electron windows *and* plain browser tabs (localStorage + BroadcastChannel fallback).
+- **Dual host** — the same renderer code runs in Electron windows _and_ plain browser tabs (localStorage + BroadcastChannel fallback).
 - **Persistent, migrated, atomic** — storage states survive restarts, migrate on version bumps (added / removed / type-changed keys), and write atomically (tmp + rename) with retries.
 - **Dependency-free core** — a ~50-line signal primitive replaces framework reactivity; works with any UI stack. Vue users get a first-class bridge.
 
@@ -20,14 +20,14 @@ Shared reactive state for Electron multi-window apps and cross-tab web apps — 
 
 ## Why
 
-| | electron-store | zustand cross-tab | cross-window-state |
-|---|---|---|---|
-| Main process + all windows, one state | ❌ (main-only JSON) | ❌ | ✅ |
-| Runtime (memory) + storage (persisted) states | ❌ persist-only | partial | ✅ both |
-| Same API on main and renderer | — | — | ✅ locked by contract tests |
-| Versioned migration | ✅ | ❌ | ✅ |
-| Web fallback (no Electron) | ❌ | ✅ | ✅ |
-| Framework-free core | n/a | React-first | ✅ (Vue bridge optional) |
+|                                               | electron-store      | zustand cross-tab | cross-window-state          |
+| --------------------------------------------- | ------------------- | ----------------- | --------------------------- |
+| Main process + all windows, one state         | ❌ (main-only JSON) | ❌                | ✅                          |
+| Runtime (memory) + storage (persisted) states | ❌ persist-only     | partial           | ✅ both                     |
+| Same API on main and renderer                 | —                   | —                 | ✅ locked by contract tests |
+| Versioned migration                           | ✅                  | ❌                | ✅                          |
+| Web fallback (no Electron)                    | ❌                  | ✅                | ✅                          |
+| Framework-free core                           | n/a                 | React-first       | ✅ (Vue bridge optional)    |
 
 If you have ever copy-pasted `ipcMain.handle` / `ipcRenderer.send` pairs just to keep two windows in sync, this library is that code — extracted, hardened, and tested.
 
@@ -47,44 +47,44 @@ Vue support is an optional peer: install `vue >= 3.3` only if you use `/vue`.
 
 ```ts
 // src/main/index.ts
-import { createRuntimeState, createStorageState } from 'cross-window-state/main'
+import { createRuntimeState, createStorageState } from "cross-window-state/main";
 
-const theme = createRuntimeState('theme', 'light')
-theme.set('dark') // every window updates immediately
+const theme = createRuntimeState("theme", "light");
+theme.set("dark"); // every window updates immediately
 
-const settings = createStorageState('settings', { locale: 'en', notifications: true }, 1)
-settings.state.locale = 'zh' // direct proxy write: syncs + persists
+const settings = createStorageState("settings", { locale: "en", notifications: true }, 1);
+settings.state.locale = "zh"; // direct proxy write: syncs + persists
 ```
 
 **2. Preload** — one line; it must be CJS (sandboxed preloads don't support ESM):
 
 ```ts
 // src/preload/index.ts (bundled by electron-vite / electron-builder as CJS)
-import 'cross-window-state/preload'
+import "cross-window-state/preload";
 ```
 
 **3. Renderer** — same factories, same signatures. In a browser tab (no preload), the exact same code transparently switches to localStorage + BroadcastChannel:
 
 ```ts
 // src/renderer anywhere
-import { createRuntimeState, createStorageState } from 'cross-window-state/renderer'
+import { createRuntimeState, createStorageState } from "cross-window-state/renderer";
 
-const theme = createRuntimeState('theme', 'light')
-theme.watch((v) => console.log('theme is now', v))
-theme.set('dark') // propagates to the main process and all windows
+const theme = createRuntimeState("theme", "light");
+theme.watch((v) => console.log("theme is now", v));
+theme.set("dark"); // propagates to the main process and all windows
 
-const settings = createStorageState('settings', { locale: 'en', notifications: true }, 1)
-settings.set('locale', 'zh')          // single key
-settings.set({ notifications: false }) // partial patch
-settings.state.locale = 'en'           // or just write the proxy
+const settings = createStorageState("settings", { locale: "en", notifications: true }, 1);
+settings.set("locale", "zh"); // single key
+settings.set({ notifications: false }); // partial patch
+settings.state.locale = "en"; // or just write the proxy
 ```
 
 **Vue bridge** (optional):
 
 ```ts
-import { useRuntimeState } from 'cross-window-state/vue'
+import { useRuntimeState } from "cross-window-state/vue";
 
-const { state, set } = useRuntimeState('theme', 'light')
+const { state, set } = useRuntimeState("theme", "light");
 // state is a ShallowRef — templates update automatically
 ```
 
@@ -92,13 +92,13 @@ A runnable app lives in [`examples/basic`](./examples/basic) (Electron + web mod
 
 ## API summary
 
-| API | Where | Purpose |
-|---|---|---|
-| `createRuntimeState<T>(name, defaultValue?, options?)` | main + renderer | In-memory shared state: `.state`, `.set(v)`, `.watch(cb)`, `.destroy()` |
-| `createStorageState<T>(name, defaults, version, options?)` | main + renderer | Persistent JSON state (same shape, plus writable `.state` proxy) |
-| `new SyncArray<T>(runtimeState, initial)` | main + renderer | Array API that commits through a runtime state (`push/splice/batch/…`) |
-| `useRuntimeState / useStorageState` | renderer (Vue) | `ShallowRef` views; scope disposal only unsubscribes, never destroys shared state |
-| `channel`, `runtimeUpdateChannel(key)`, … | root | IPC wire protocol constants (namespaced `cws:`), for interop/debugging |
+| API                                                        | Where           | Purpose                                                                           |
+| ---------------------------------------------------------- | --------------- | --------------------------------------------------------------------------------- |
+| `createRuntimeState<T>(name, defaultValue?, options?)`     | main + renderer | In-memory shared state: `.state`, `.set(v)`, `.watch(cb)`, `.destroy()`           |
+| `createStorageState<T>(name, defaults, version, options?)` | main + renderer | Persistent JSON state (same shape, plus writable `.state` proxy)                  |
+| `new SyncArray<T>(runtimeState, initial)`                  | main + renderer | Array API that commits through a runtime state (`push/splice/batch/…`)            |
+| `useRuntimeState / useStorageState`                        | renderer (Vue)  | `ShallowRef` views; scope disposal only unsubscribes, never destroys shared state |
+| `channel`, `runtimeUpdateChannel(key)`, …                  | root            | IPC wire protocol constants (namespaced `cws:`), for interop/debugging            |
 
 Runtime states are garbage-collected when neither the main process nor any window holds a reference. Storage states write to `<userData>/cross-window-state/<name>.json`, debounced 300 ms, flushed on destroy and on app quit.
 
@@ -137,7 +137,7 @@ pnpm build      # dist (dual format + preload cjs)
 pnpm lint       # oxlint + oxfmt
 ```
 
-The main/renderer parity is enforced by running the *same* behavioral contract suite against both factories — any drift fails CI.
+The main/renderer parity is enforced by running the _same_ behavioral contract suite against both factories — any drift fails CI.
 
 ## License
 

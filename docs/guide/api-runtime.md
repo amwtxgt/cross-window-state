@@ -1,8 +1,8 @@
 # API: Runtime state
 
 ```ts
-import { createRuntimeState } from 'cross-window-state/main'     // main process
-import { createRuntimeState } from 'cross-window-state/renderer' // renderer / web
+import { createRuntimeState } from "cross-window-state/main"; // main process
+import { createRuntimeState } from "cross-window-state/renderer"; // renderer / web
 ```
 
 Identical signature and semantics on both ends — enforced by the contract suite.
@@ -14,23 +14,23 @@ function createRuntimeState<T>(
   name: string,
   defaultValue?: T,
   options?: RuntimeStateOptions,
-): RuntimeState<T>
+): RuntimeState<T>;
 ```
 
-| Parameter | Type | Description |
-|---|---|---|
-| `name` | `string` | Global state name. Same name = same state, everywhere. |
-| `defaultValue` | `T` | Initial value when the state does not exist yet. |
+| Parameter          | Type      | Description                                                   |
+| ------------------ | --------- | ------------------------------------------------------------- |
+| `name`             | `string`  | Global state name. Same name = same state, everywhere.        |
+| `defaultValue`     | `T`       | Initial value when the state does not exist yet.              |
 | `options.readonly` | `boolean` | Reject `.set()` with a console error (shared read-only view). |
 
 ## RuntimeState
 
 ```ts
 interface RuntimeState<T> {
-  readonly state: T
-  set(value: T): void
-  watch(cb: (newVal: T, oldVal: T | undefined) => void): () => void
-  destroy(): void
+  readonly state: T;
+  set(value: T): void;
+  watch(cb: (newVal: T, oldVal: T | undefined) => void): () => void;
+  destroy(): void;
 }
 ```
 
@@ -59,9 +59,9 @@ Same-name `createRuntimeState` calls on one page return the **same instance** (o
 ## Example
 
 ```ts
-const panels = createRuntimeState('open-panels', ['outline'])
-const off = panels.watch((next) => saveLayoutLocally(next))
-panels.set(['outline', 'terminal'])
-off()
-panels.destroy()
+const panels = createRuntimeState("open-panels", ["outline"]);
+const off = panels.watch((next) => saveLayoutLocally(next));
+panels.set(["outline", "terminal"]);
+off();
+panels.destroy();
 ```

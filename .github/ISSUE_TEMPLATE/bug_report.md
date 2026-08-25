@@ -5,6 +5,7 @@ labels: bug
 ---
 
 **Environment**
+
 - cross-window-state version:
 - Electron version (or "web"):
 - OS:

@@ -20,14 +20,14 @@
 
 ## 为什么
 
-| | electron-store | zustand cross-tab | cross-window-state |
-|---|---|---|---|
-| 主进程 + 所有窗口共享一份状态 | ❌（仅主进程 JSON） | ❌ | ✅ |
-| runtime（内存态）+ storage（持久态）双状态 | ❌ 仅持久化 | 部分 | ✅ 两者 |
-| 主进程与渲染进程 API 一致 | — | — | ✅ 契约测试锁定 |
-| 版本化迁移 | ✅ | ❌ | ✅ |
-| Web 降级（无 Electron） | ❌ | ✅ | ✅ |
-| 框架无关核心 | n/a | React 优先 | ✅（Vue 桥可选） |
+|                                            | electron-store      | zustand cross-tab | cross-window-state |
+| ------------------------------------------ | ------------------- | ----------------- | ------------------ |
+| 主进程 + 所有窗口共享一份状态              | ❌（仅主进程 JSON） | ❌                | ✅                 |
+| runtime（内存态）+ storage（持久态）双状态 | ❌ 仅持久化         | 部分              | ✅ 两者            |
+| 主进程与渲染进程 API 一致                  | —                   | —                 | ✅ 契约测试锁定    |
+| 版本化迁移                                 | ✅                  | ❌                | ✅                 |
+| Web 降级（无 Electron）                    | ❌                  | ✅                | ✅                 |
+| 框架无关核心                               | n/a                 | React 优先        | ✅（Vue 桥可选）   |
 
 如果你曾经为了两个窗口的数据同步到处复制 `ipcMain.handle` / `ipcRenderer.send` 样板代码——这个库就是那段代码的抽取、加固与测试版。
 
@@ -46,44 +46,44 @@ Vue 支持是可选 peer：只有使用 `/vue` 入口时才需要安装 `vue >= 
 
 ```ts
 // src/main/index.ts
-import { createRuntimeState, createStorageState } from 'cross-window-state/main'
+import { createRuntimeState, createStorageState } from "cross-window-state/main";
 
-const theme = createRuntimeState('theme', 'light')
-theme.set('dark') // 所有窗口立即更新
+const theme = createRuntimeState("theme", "light");
+theme.set("dark"); // 所有窗口立即更新
 
-const settings = createStorageState('settings', { locale: 'en', notifications: true }, 1)
-settings.state.locale = 'zh' // Proxy 直写：自动同步 + 持久化
+const settings = createStorageState("settings", { locale: "en", notifications: true }, 1);
+settings.state.locale = "zh"; // Proxy 直写：自动同步 + 持久化
 ```
 
 **2. Preload** —— 一行；必须是 CJS（沙箱 preload 不支持 ESM）：
 
 ```ts
 // src/preload/index.ts（由 electron-vite / electron-builder 打成 CJS）
-import 'cross-window-state/preload'
+import "cross-window-state/preload";
 ```
 
 **3. 渲染进程** —— 同名同签名工厂。在浏览器标签页（无 preload）中，同一份代码透明切换到 localStorage + BroadcastChannel：
 
 ```ts
 // src/renderer 任意位置
-import { createRuntimeState, createStorageState } from 'cross-window-state/renderer'
+import { createRuntimeState, createStorageState } from "cross-window-state/renderer";
 
-const theme = createRuntimeState('theme', 'light')
-theme.watch((v) => console.log('theme 更新为', v))
-theme.set('dark') // 传播到主进程与所有窗口
+const theme = createRuntimeState("theme", "light");
+theme.watch((v) => console.log("theme 更新为", v));
+theme.set("dark"); // 传播到主进程与所有窗口
 
-const settings = createStorageState('settings', { locale: 'en', notifications: true }, 1)
-settings.set('locale', 'zh')          // 单键
-settings.set({ notifications: false }) // 批量 patch
-settings.state.locale = 'en'           // 或直接 Proxy 写入
+const settings = createStorageState("settings", { locale: "en", notifications: true }, 1);
+settings.set("locale", "zh"); // 单键
+settings.set({ notifications: false }); // 批量 patch
+settings.state.locale = "en"; // 或直接 Proxy 写入
 ```
 
 **Vue 桥**（可选）：
 
 ```ts
-import { useRuntimeState } from 'cross-window-state/vue'
+import { useRuntimeState } from "cross-window-state/vue";
 
-const { state, set } = useRuntimeState('theme', 'light')
+const { state, set } = useRuntimeState("theme", "light");
 // state 是 ShallowRef —— 模板自动更新
 ```
 
@@ -91,13 +91,13 @@ const { state, set } = useRuntimeState('theme', 'light')
 
 ## API 摘要
 
-| API | 位置 | 用途 |
-|---|---|---|
-| `createRuntimeState<T>(name, defaultValue?, options?)` | 主进程 + 渲染进程 | 内存共享状态：`.state`、`.set(v)`、`.watch(cb)`、`.destroy()` |
-| `createStorageState<T>(name, defaults, version, options?)` | 主进程 + 渲染进程 | 持久化 JSON 状态（同形态，外加可直写 `.state` Proxy） |
-| `new SyncArray<T>(runtimeState, initial)` | 主进程 + 渲染进程 | 经 runtime 状态提交的数组 API（`push/splice/batch/…`） |
-| `useRuntimeState / useStorageState` | 渲染进程（Vue） | `ShallowRef` 视图；作用域销毁只退订、绝不销毁共享状态 |
-| `channel`、`runtimeUpdateChannel(key)` 等 | 根入口 | IPC 协议常量（`cws:` 命名空间），供互操作/调试 |
+| API                                                        | 位置              | 用途                                                          |
+| ---------------------------------------------------------- | ----------------- | ------------------------------------------------------------- |
+| `createRuntimeState<T>(name, defaultValue?, options?)`     | 主进程 + 渲染进程 | 内存共享状态：`.state`、`.set(v)`、`.watch(cb)`、`.destroy()` |
+| `createStorageState<T>(name, defaults, version, options?)` | 主进程 + 渲染进程 | 持久化 JSON 状态（同形态，外加可直写 `.state` Proxy）         |
+| `new SyncArray<T>(runtimeState, initial)`                  | 主进程 + 渲染进程 | 经 runtime 状态提交的数组 API（`push/splice/batch/…`）        |
+| `useRuntimeState / useStorageState`                        | 渲染进程（Vue）   | `ShallowRef` 视图；作用域销毁只退订、绝不销毁共享状态         |
+| `channel`、`runtimeUpdateChannel(key)` 等                  | 根入口            | IPC 协议常量（`cws:` 命名空间），供互操作/调试                |
 
 runtime 状态在主进程与所有窗口都不再持有引用后自动回收。storage 状态写入 `<userData>/cross-window-state/<name>.json`，300ms 防抖，destroy 与应用退出时强制落盘。
 

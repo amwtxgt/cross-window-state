@@ -2,13 +2,13 @@
 
 The library is the extracted, hardened version of the hand-rolled `ipcMain.handle` / `ipcRenderer.send` pattern. Mapping table:
 
-| Raw IPC | cross-window-state |
-|---|---|
-| `ipcMain.handle('get-theme', () => theme)` | `createRuntimeState('theme', 'light')` in main |
-| `ipcRenderer.invoke('get-theme')` + local cache | `createRuntimeState('theme', 'light')` in renderer |
-| `ipcRenderer.send('set-theme', v)` + `webContents.send('theme-changed', v)` loop | `theme.set(v)` — propagation is automatic |
-| `window.addEventListener('storage')` cross-tab hacks | nothing — web mode handles it |
-| JSON settings file + `Object.keys` diffing on startup | `createStorageState(name, defaults, version)` |
+| Raw IPC                                                                          | cross-window-state                                 |
+| -------------------------------------------------------------------------------- | -------------------------------------------------- |
+| `ipcMain.handle('get-theme', () => theme)`                                       | `createRuntimeState('theme', 'light')` in main     |
+| `ipcRenderer.invoke('get-theme')` + local cache                                  | `createRuntimeState('theme', 'light')` in renderer |
+| `ipcRenderer.send('set-theme', v)` + `webContents.send('theme-changed', v)` loop | `theme.set(v)` — propagation is automatic          |
+| `window.addEventListener('storage')` cross-tab hacks                             | nothing — web mode handles it                      |
+| JSON settings file + `Object.keys` diffing on startup                            | `createStorageState(name, defaults, version)`      |
 
 ## Migration steps
 

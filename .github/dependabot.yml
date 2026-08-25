@@ -11,7 +11,7 @@ updates:
     # examples/basic and the root share one lockfile via pnpm workspace
     groups:
       dev-deps:
-        dependency-types: ['devDependencies']
+        dependency-types: ["devDependencies"]
   - package-ecosystem: npm
     directory: /examples/basic
     schedule:

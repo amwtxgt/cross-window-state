@@ -6,11 +6,11 @@ Three files, one import each.
 
 ```ts
 // src/main/index.ts
-import 'cross-window-state/main' // registers IPC handlers once app is ready
-import { createRuntimeState, createStorageState } from 'cross-window-state/main'
+import "cross-window-state/main"; // registers IPC handlers once app is ready
+import { createRuntimeState, createStorageState } from "cross-window-state/main";
 
-const layout = createRuntimeState('layout', { sidebar: true })
-const settings = createStorageState('settings', { locale: 'en' }, 1)
+const layout = createRuntimeState("layout", { sidebar: true });
+const settings = createStorageState("settings", { locale: "en" }, 1);
 ```
 
 Importing the entry is all the setup needed — runtime IPC handlers register in the manager constructor and storage handlers on `app.whenReady()`.
@@ -21,14 +21,14 @@ Sandboxed preloads do not support ESM, so this entry ships as a single `.cjs` fi
 
 ```ts
 // src/preload/index.ts — bundled to CJS
-import 'cross-window-state/preload'
+import "cross-window-state/preload";
 ```
 
 Or reference the built file directly without a bundler:
 
 ```js
 // preload.js (plain CJS, no bundler)
-require('cross-window-state/preload')
+require("cross-window-state/preload");
 ```
 
 ::: warning Bundler pitfall
@@ -40,21 +40,21 @@ Recommended `webPreferences`:
 ```ts
 new BrowserWindow({
   webPreferences: {
-    preload: path.join(__dirname, '../preload/index.js'),
+    preload: path.join(__dirname, "../preload/index.js"),
     contextIsolation: true, // required
     nodeIntegration: false,
     sandbox: true, // supported
   },
-})
+});
 ```
 
 ## 3. Renderer
 
 ```ts
-import { createRuntimeState } from 'cross-window-state/renderer'
+import { createRuntimeState } from "cross-window-state/renderer";
 
-const layout = createRuntimeState('layout', { sidebar: true })
-layout.watch((v) => render(v))
+const layout = createRuntimeState("layout", { sidebar: true });
+layout.watch((v) => render(v));
 ```
 
 The renderer detects `window.__crossWindowState__` at module load — injected by the preload before any page script runs, so the detection is stable for the page lifetime.

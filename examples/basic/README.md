@@ -5,7 +5,7 @@ A minimal Electron app demonstrating the library, and the e2e harness for the re
 - **runtime counter** — click `+1` in one window, watch both windows update
 - **storage settings** — change theme/notifications, restart the app, values are restored
 - **open new window** — a third window joins already in sync
-- **web mode** — `examples/basic/web/index.html` runs the *same renderer code* in a plain browser (localStorage + BroadcastChannel)
+- **web mode** — `examples/basic/web/index.html` runs the _same renderer code_ in a plain browser (localStorage + BroadcastChannel)
 
 ## Run
 

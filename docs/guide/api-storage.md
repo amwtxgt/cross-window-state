@@ -1,8 +1,8 @@
 # API: Storage state
 
 ```ts
-import { createStorageState } from 'cross-window-state/main'     // also exports StorageStore
-import { createStorageState } from 'cross-window-state/renderer'
+import { createStorageState } from "cross-window-state/main"; // also exports StorageStore
+import { createStorageState } from "cross-window-state/renderer";
 ```
 
 ## createStorageState
@@ -13,31 +13,31 @@ function createStorageState<T extends Record<string, unknown>>(
   defaults: T,
   version: number,
   options?: StorageStateOptions,
-): StorageState<T>
+): StorageState<T>;
 ```
 
-| Parameter | Type | Description |
-|---|---|---|
-| `name` | `string` | Store name (`[a-zA-Z0-9_-]+`); also the file name. |
-| `defaults` | `T` | Default values; defines the observable key set. |
-| `version` | `number` | Schema version — bump to trigger migration. |
-| `options.skipDefaultsCheck` | `boolean` | Reuse an existing store even with different defaults. |
-| `options.maxRetries` | `number` | Write attempts after failure. Default `3`. |
-| `options.retryDelay` | `number` | Delay between retries (ms). Default `1000`. |
-| `options.dir` | `string` | Subdirectory under `userData`. Default `cross-window-state`. |
+| Parameter                   | Type      | Description                                                  |
+| --------------------------- | --------- | ------------------------------------------------------------ |
+| `name`                      | `string`  | Store name (`[a-zA-Z0-9_-]+`); also the file name.           |
+| `defaults`                  | `T`       | Default values; defines the observable key set.              |
+| `version`                   | `number`  | Schema version — bump to trigger migration.                  |
+| `options.skipDefaultsCheck` | `boolean` | Reuse an existing store even with different defaults.        |
+| `options.maxRetries`        | `number`  | Write attempts after failure. Default `3`.                   |
+| `options.retryDelay`        | `number`  | Delay between retries (ms). Default `1000`.                  |
+| `options.dir`               | `string`  | Subdirectory under `userData`. Default `cross-window-state`. |
 
 ## StorageState
 
 ```ts
 interface StorageState<T> {
-  readonly state: T // writable proxy
-  set<K extends keyof T & string>(key: K, value: T[K]): void
-  set(patch: Partial<T>): void
+  readonly state: T; // writable proxy
+  set<K extends keyof T & string>(key: K, value: T[K]): void;
+  set(patch: Partial<T>): void;
   watch<K extends keyof T & string>(
     key: K,
     cb: (newValue: T[K], oldValue: T[K] | undefined) => void,
-  ): () => void
-  destroy(): void
+  ): () => void;
+  destroy(): void;
 }
 ```
 
@@ -46,8 +46,8 @@ interface StorageState<T> {
 Reads return the merged current data. **Writes go through the sync pipeline automatically**:
 
 ```ts
-settings.state.locale = 'zh'     // sync + persist, everywhere
-delete settings.state.locale    // key reads undefined afterwards
+settings.state.locale = "zh"; // sync + persist, everywhere
+delete settings.state.locale; // key reads undefined afterwards
 ```
 
 This is first-class usage, not a compromise — the same `createProxyState` core powers both the main-process store and the renderer state.
