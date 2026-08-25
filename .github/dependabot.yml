@@ -1,0 +1,18 @@
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    # examples/basic and the root share one lockfile via pnpm workspace
+    groups:
+      dev-deps:
+        dependency-types: ['devDependencies']
+  - package-ecosystem: npm
+    directory: /examples/basic
+    schedule:
+      interval: weekly
