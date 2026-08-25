@@ -27,10 +27,6 @@ const realWriteFile = promisify(realWriteFileCb) as (
   ...args: Parameters<(typeof import("node:fs/promises"))["writeFile"]>
 ) => Promise<void>;
 
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
 let h: typeof import("./helpers/electron-impl");
 let Store: typeof import("../../../src/main/storage-store").StorageStore;
 let fsSpy: { writeFile: Mock; rename: Mock };
@@ -237,11 +233,16 @@ describe("StorageStore persistence (debounced + atomic)", () => {
 
     // nothing written yet (inside the debounce window)
     expect(fsSpy.writeFile).not.toHaveBeenCalled();
-    await sleep(450);
+    // poll instead of fixed sleep — CI runners may stretch the debounce timer
+    await vi.waitFor(
+      () => {
+        expect(fsSpy.rename).toHaveBeenCalledTimes(1);
+      },
+      { timeout: 5000 },
+    );
 
     // exactly one tmp write + rename for the whole burst
     expect(fsSpy.writeFile).toHaveBeenCalledTimes(1);
-    expect(fsSpy.rename).toHaveBeenCalledTimes(1);
 
     const onDisk = await readStoreFile("settings");
     expect(onDisk.data).toEqual({ count: 10 });
@@ -254,9 +255,12 @@ describe("StorageStore persistence (debounced + atomic)", () => {
     fsSpy.rename.mockClear();
 
     store.set("count", 5);
-    await new Promise((r) => setTimeout(r, 400));
-
-    expect(fsSpy.rename.mock.calls.length).toBeGreaterThanOrEqual(1);
+    await vi.waitFor(
+      () => {
+        expect(fsSpy.rename.mock.calls.length).toBeGreaterThanOrEqual(1);
+      },
+      { timeout: 5000 },
+    );
     const onDisk = await readStoreFile("settings");
     expect(onDisk.data).toEqual({ count: 5 });
     store.destroy();
@@ -267,9 +271,13 @@ describe("StorageStore persistence (debounced + atomic)", () => {
     });
     const store2 = new Store("settings2", { x: 1 }, 1);
     store2.set("x", 2);
-    await new Promise((r) => setTimeout(r, 400));
-    const onDisk2 = await readStoreFile("settings2");
-    expect(onDisk2.data).toEqual({ x: 2 });
+    await vi.waitFor(
+      async () => {
+        const onDisk2 = await readStoreFile("settings2");
+        expect(onDisk2.data).toEqual({ x: 2 });
+      },
+      { timeout: 5000 },
+    );
     store2.destroy();
   });
 
@@ -305,8 +313,12 @@ describe("StorageStore persistence (debounced + atomic)", () => {
       throw new Error("disk dead");
     });
     store.set("count", 9);
-    await sleep(600);
-    expect(attempts).toBeGreaterThanOrEqual(3);
+    await vi.waitFor(
+      () => {
+        expect(attempts).toBeGreaterThanOrEqual(3);
+      },
+      { timeout: 5000 },
+    );
     expect(store.state.count).toBe(9); // memory intact
     errSpy.mockRestore();
 

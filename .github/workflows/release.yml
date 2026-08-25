@@ -6,6 +6,12 @@ on:
 
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 
+# changesets pushes the changeset-release/main branch and opens the
+# Version Packages PR — the default read-only GITHUB_TOKEN cannot do either.
+permissions:
+  contents: write
+  pull-requests: write
+
 jobs:
   release:
     name: Changesets release
