@@ -10,3 +10,4 @@ playwright-report/
 examples/*/out/
 examples/*/dist-web/
 .vercel
+.idea/

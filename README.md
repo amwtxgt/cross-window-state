@@ -1,6 +1,6 @@
 # cross-window-state
 
-[![CI](https://img.shields.io/badge/CI-GitHub_Actions-2088ff?logo=githubactions&logoColor=white)](https://github.com/YOUR_USER/cross-window-state/actions)
+[![CI](https://img.shields.io/badge/CI-GitHub_Actions-2088ff?logo=githubactions&logoColor=white)](https://github.com/amwtxgt/cross-window-state/actions)
 [![npm](https://img.shields.io/badge/npm-cross--window--state-cb3837?logo=npm&logoColor=white)](https://www.npmjs.com/package/cross-window-state)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](./LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6?logo=typescript&logoColor=white)](./tsconfig.json)
@@ -16,7 +16,7 @@ Shared reactive state for Electron multi-window apps and cross-tab web apps — 
 - **Persistent, migrated, atomic** — storage states survive restarts, migrate on version bumps (added / removed / type-changed keys), and write atomically (tmp + rename) with retries.
 - **Dependency-free core** — a ~50-line signal primitive replaces framework reactivity; works with any UI stack. Vue users get a first-class bridge.
 
-[Quick start](#quick-start) · [Documentation](https://YOUR_USER.github.io/cross-window-state/) · [中文文档](./README.zh-CN.md)
+[Quick start](#quick-start) · [Documentation](https://amwtxgt.github.io/cross-window-state/) · [中文文档](./README.zh-CN.md)
 
 ## Why
 
@@ -125,7 +125,7 @@ All renderers are equally trusted, like the rest of Electron's IPC surface. Do n
 
 ## Documentation
 
-The [VitePress site](https://YOUR_USER.github.io/cross-window-state/) has the full guides: [Getting started](https://YOUR_USER.github.io/cross-window-state/guide/getting-started), [Electron setup](https://YOUR_USER.github.io/cross-window-state/guide/electron-setup), [Web mode](https://YOUR_USER.github.io/cross-window-state/guide/web-mode), [Vue bridge](https://YOUR_USER.github.io/cross-window-state/guide/vue-bridge), [Migrating from raw IPC](https://YOUR_USER.github.io/cross-window-state/guide/migration-from-raw-ipc), and the API references for [runtime](https://YOUR_USER.github.io/cross-window-state/guide/api-runtime), [storage](https://YOUR_USER.github.io/cross-window-state/guide/api-storage), [SyncArray](https://YOUR_USER.github.io/cross-window-state/guide/api-sync-array) and [Vue](https://YOUR_USER.github.io/cross-window-state/guide/api-vue).
+The [VitePress site](https://amwtxgt.github.io/cross-window-state/) has the full guides: [Getting started](https://amwtxgt.github.io/cross-window-state/guide/getting-started), [Electron setup](https://amwtxgt.github.io/cross-window-state/guide/electron-setup), [Web mode](https://amwtxgt.github.io/cross-window-state/guide/web-mode), [Vue bridge](https://amwtxgt.github.io/cross-window-state/guide/vue-bridge), [Migrating from raw IPC](https://amwtxgt.github.io/cross-window-state/guide/migration-from-raw-ipc), and the API references for [runtime](https://amwtxgt.github.io/cross-window-state/guide/api-runtime), [storage](https://amwtxgt.github.io/cross-window-state/guide/api-storage), [SyncArray](https://amwtxgt.github.io/cross-window-state/guide/api-sync-array) and [Vue](https://amwtxgt.github.io/cross-window-state/guide/api-vue).
 
 ## Development
 

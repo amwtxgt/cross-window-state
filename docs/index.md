@@ -8,7 +8,7 @@ hero:
       link: /guide/getting-started
     - theme: alt
       text: View on GitHub
-      link: https://github.com/YOUR_USER/cross-window-state
+      link: https://github.com/amwtxgt/cross-window-state
 ---
 
 # One state, many windows, always in sync

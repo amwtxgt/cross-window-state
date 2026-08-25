@@ -22,4 +22,4 @@ The library is the extracted, hardened version of the hand-rolled `ipcMain.handl
 
 - **Shallow reactivity**: mutating a nested object in place does not notify — assign a fresh reference or call `.set()` again.
 - **Keys must be declared**: cross-window storage updates only arrive for keys present in that page's `defaults` (or explicitly `.watch()`-ed).
-- **The first read is synchronous** (`sendSync`, once per state creation) so states are usable at module scope. See the [FAQ](https://github.com/YOUR_USER/cross-window-state#faq) for the trade-off discussion.
+- **The first read is synchronous** (`sendSync`, once per state creation) so states are usable at module scope. See the [FAQ](https://github.com/amwtxgt/cross-window-state#faq) for the trade-off discussion.

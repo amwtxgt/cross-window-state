@@ -6,7 +6,7 @@ Only the latest release line receives security fixes.
 
 ## Reporting a vulnerability
 
-Please report privately: use [GitHub security advisories](https://github.com/YOUR_USER/cross-window-state/security/advisories/new) ("Report a vulnerability"). Do not open public issues for suspected vulnerabilities.
+Please report privately: use [GitHub security advisories](https://github.com/amwtxgt/cross-window-state/security/advisories/new) ("Report a vulnerability"). Do not open public issues for suspected vulnerabilities.
 
 Include reproduction steps and affected entry points (`/main`, `/preload`, `/renderer`, `/vue`) where possible.
 

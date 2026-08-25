@@ -1,6 +1,6 @@
 # cross-window-state
 
-[![CI](https://img.shields.io/badge/CI-GitHub_Actions-2088ff?logo=githubactions&logoColor=white)](https://github.com/YOUR_USER/cross-window-state/actions)
+[![CI](https://img.shields.io/badge/CI-GitHub_Actions-2088ff?logo=githubactions&logoColor=white)](https://github.com/amwtxgt/cross-window-state/actions)
 [![npm](https://img.shields.io/badge/npm-cross--window--state-cb3837?logo=npm&logoColor=white)](https://www.npmjs.com/package/cross-window-state)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](./LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6?logo=typescript&logoColor=white)](./tsconfig.json)
@@ -16,7 +16,7 @@
 - **持久化 + 迁移 + 原子写** —— storage 状态跨重启存活，版本升级自动迁移（新增/移除/类型变更三分支），写入原子（tmp + rename）且带重试。
 - **核心零依赖** —— 约 50 行的 signal 原语替代框架级响应式；任意 UI 栈可用。Vue 用户有一等桥接。
 
-[快速开始](#快速开始) · [文档站点](https://YOUR_USER.github.io/cross-window-state/) · [English](./README.md)
+[快速开始](#快速开始) · [文档站点](https://amwtxgt.github.io/cross-window-state/) · [English](./README.md)
 
 ## 为什么
 

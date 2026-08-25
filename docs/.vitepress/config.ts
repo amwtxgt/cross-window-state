@@ -9,7 +9,7 @@ export default defineConfig({
     nav: [
       { text: "Guide", link: "/guide/getting-started" },
       { text: "API", link: "/guide/api-runtime" },
-      { text: "中文", link: "https://github.com/YOUR_USER/cross-window-state#readme" },
+      { text: "中文", link: "https://github.com/amwtxgt/cross-window-state#readme" },
     ],
     sidebar: [
       {
@@ -32,6 +32,6 @@ export default defineConfig({
         ],
       },
     ],
-    socialLinks: [{ icon: "github", link: "https://github.com/YOUR_USER/cross-window-state" }],
+    socialLinks: [{ icon: "github", link: "https://github.com/amwtxgt/cross-window-state" }],
   },
 });
