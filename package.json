@@ -14,17 +14,17 @@
     "state-management",
     "vue"
   ],
+  "homepage": "https://amwtxgt.github.io/cross-window-state/",
+  "bugs": "https://github.com/amwtxgt/cross-window-state/issues",
   "license": "MIT",
-  "files": [
-    "dist"
-  ],
-  "type": "module",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/amwtxgt/cross-window-state.git"
   },
-  "homepage": "https://amwtxgt.github.io/cross-window-state/",
-  "bugs": "https://github.com/amwtxgt/cross-window-state/issues",
+  "files": [
+    "dist"
+  ],
+  "type": "module",
   "sideEffects": true,
   "main": "./dist/index.cjs",
   "module": "./dist/index.mjs",
