@@ -7,6 +7,7 @@ import {
   makeIpcEvent,
   resetElectronMock,
 } from "./helpers/electron-impl";
+import type { FakeWebContents } from "./helpers/electron-impl";
 import { channel, runtimeUpdateChannel } from "../../../src/core/protocol";
 
 vi.mock("electron", async () => {
@@ -178,6 +179,11 @@ describe("RuntimeStateManager IPC handlers", () => {
   });
 });
 
-function webContentsOf(id: number) {
-  return electronMock.webContents.fromId.mock.results.find((r) => r.value?.id === id)?.value;
+function webContentsOf(id: number): FakeWebContents {
+  // Query the live registry — never scan fromId.mock.results: call history is
+  // stale across resetElectronMock() (and not even shared with the vi.mock
+  // factory's module instance under vitest 5).
+  const wc = electronMock.webContents.fromId(id);
+  if (!wc) throw new Error(`no webContents registered with id ${id}`);
+  return wc;
 }
