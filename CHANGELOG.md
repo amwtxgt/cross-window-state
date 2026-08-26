@@ -1,5 +1,11 @@
 # cross-window-state
 
+## 0.1.2
+
+### Patch Changes
+
+- [`39d6c91`](https://github.com/amwtxgt/cross-window-state/commit/39d6c91d5c509cf42bec4dd03062a24372ef2511) Thanks [@amwtxgt](https://github.com/amwtxgt)! - Fix: `useRuntimeState` / `useStorageState` no longer trigger a Vue warning when called outside an active effect scope (module-level singleton consumers); disposal hooks are now registered only when a scope exists.
+
 ## 0.1.1
 
 ### Patch Changes
