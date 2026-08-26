@@ -1,5 +1,11 @@
 # cross-window-state
 
+## 0.1.1
+
+### Patch Changes
+
+- [`5073e17`](https://github.com/amwtxgt/cross-window-state/commit/5073e1716d78e0dc201180bc2311af771bdc4d92) Thanks [@amwtxgt](https://github.com/amwtxgt)! - fix(web): late-joining tabs now hydrate runtime state from live peers. Previously a tab opened after a runtime value was set sat on its default until the next write; subscribing with no local value now broadcasts a hydrate request and any tab holding the value answers. Memory-only semantics are unchanged — nothing is persisted.
+
 ## 0.1.0
 
 ### Minor Changes
