@@ -1,6 +1,6 @@
 {
   "name": "cross-window-state",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "One state, many windows, always in sync — shared reactive state for Electron multi-window apps and cross-tab web apps, with built-in persistence and versioned migration.",
   "keywords": [
     "broadcast-channel",
