@@ -22,10 +22,10 @@ settings.set("locale", "zh"); // other tabs update live
 
 - `set()` notifies the local page **synchronously** in both modes (the Electron main process broadcasts to every window including the writer).
 - A tab that only _subscribes_ still receives everything: the BroadcastChannel is created at module load, before any state — no missed early broadcasts.
+- A tab opened **later** still catches up: subscribing with no local value broadcasts a hydrate request, and any live tab holding the value answers. Nothing is persisted — memory remains the only runtime store.
 - `localStorage` failures (quota, private mode) never throw: memory state remains the source of truth for the session.
 - `destroy()` of a runtime state is **local-only** on web — closing/clearing in one tab never wipes the value for its siblings (mirrors the Electron reference-count semantics).
 
 ## Known differences (by design)
 
-- **No replay for late tabs**: a tab opened later cannot read runtime values set before it existed (there is no shared memory). Storage values are fine — they come from `localStorage`.
 - **No migration chain**: with no main process to run one, a version mismatch resets to defaults and persists the new version.

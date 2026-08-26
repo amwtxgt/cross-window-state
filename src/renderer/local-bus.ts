@@ -8,9 +8,12 @@
  * - the bus channel is created at module load, BEFORE any state is created:
  *   BroadcastChannel has no replay, so a lazy channel would make a
  *   subscribe-only tab miss every broadcast sent before its first set
+ * - late-joining tabs hydrate runtime values from live peers: subscribing with
+ *   no local value broadcasts a hydrate request, and any tab holding a value
+ *   answers (memory stays the only store — nothing is persisted)
  * - semantic alignment with Electron mode: set() notifies the local page
- *   synchronously (the main process broadcasts to every window including
- *   the writer), and clear() is local-only — one tab closing must not wipe
+ *   synchronously (the main process broadcasts to every window including the
+ *   writer), and clear() is local-only — one tab closing must not wipe
  *   the value for other tabs (mirrors main-process ref counting)
  */
 
@@ -26,7 +29,7 @@ interface StorageEntry {
 }
 
 interface BusMessage {
-  kind: "runtime" | "storage";
+  kind: "runtime" | "runtime-hydrate-request" | "runtime-hydrate" | "storage";
   name: string;
   value?: unknown;
   patch?: Record<string, unknown>;
@@ -76,6 +79,19 @@ function applyBusMessage(raw: unknown): void {
   if (!raw || typeof raw !== "object") return;
   const msg = raw as Partial<BusMessage>;
   if (msg.kind === "runtime" && typeof msg.name === "string") {
+    applyRuntime(msg.name, msg.value);
+  } else if (msg.kind === "runtime-hydrate-request" && typeof msg.name === "string") {
+    // A late-joining tab asks peers for the current value. Answer only when we
+    // actually hold one — undefined means "never set on this tab".
+    const value = runtimeEntries.get(msg.name)?.value;
+    if (value !== undefined) {
+      postBus({ kind: "runtime-hydrate", name: msg.name, value });
+    }
+  } else if (msg.kind === "runtime-hydrate" && typeof msg.name === "string") {
+    // Fill-the-void only: a value that arrived meanwhile (this tab's own set,
+    // or a live broadcast) is newer than any hydrate reply — never overwrite
+    // it. This also collapses identical/duplicate replies from several peers.
+    if (runtimeEntries.get(msg.name)?.value !== undefined) return;
     applyRuntime(msg.name, msg.value);
   } else if (
     msg.kind === "storage" &&
@@ -131,6 +147,11 @@ export const localRuntimeBus = {
   ): () => void {
     const entry = runtimeEntryOf(key);
     entry.listeners.add(cb);
+    // Late joiner with nothing locally: ask live peers for the current value.
+    // The reply arrives as an ordinary runtime update through the same path.
+    if (entry.value === undefined) {
+      postBus({ kind: "runtime-hydrate-request", name: key });
+    }
     return () => {
       entry.listeners.delete(cb);
     };

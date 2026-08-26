@@ -184,6 +184,64 @@ describe("cross-tab sync via BroadcastChannel", () => {
     expect(seen).toEqual(["dark"]);
   });
 
+  it("runtime: a late-joining tab hydrates the current value from a live peer", async () => {
+    const a = await loadTab();
+    a.localRuntimeBus.onStateUpdated("counter", () => {});
+    a.localRuntimeBus.set("counter", 4);
+
+    // B opens later: its first subscription asks peers, A answers with 4.
+    const b = await loadTab();
+    const seen: unknown[] = [];
+    b.localRuntimeBus.onStateUpdated("counter", (p) => seen.push(p.newValue));
+    flushBus();
+    expect(b.localRuntimeBus.get("counter")).toBe(4);
+    expect(seen).toEqual([4]);
+  });
+
+  it("runtime: hydration with no peer holding a value leaves the default in place", async () => {
+    const a = await loadTab();
+    a.localRuntimeBus.onStateUpdated("fresh", () => {});
+
+    const b = await loadTab();
+    b.localRuntimeBus.onStateUpdated("fresh", () => {});
+    flushBus();
+    expect(b.localRuntimeBus.get("fresh")).toBeUndefined();
+  });
+
+  it("runtime: identical hydrate replies from several peers apply once", async () => {
+    const a = await loadTab();
+    a.localRuntimeBus.onStateUpdated("counter", () => {});
+    a.localRuntimeBus.set("counter", 7);
+    const c = await loadTab();
+    c.localRuntimeBus.onStateUpdated("counter", () => {}); // C hydrates 7 from A
+    flushBus();
+
+    // Now A and C both hold 7; B's request gets two identical replies.
+    const b = await loadTab();
+    const seen: unknown[] = [];
+    b.localRuntimeBus.onStateUpdated("counter", (p) => seen.push(p.newValue));
+    flushBus();
+    expect(seen).toEqual([7]);
+  });
+
+  it("runtime: a stale hydrate reply never overwrites a value the tab set meanwhile", async () => {
+    const a = await loadTab();
+    a.localRuntimeBus.onStateUpdated("counter", () => {});
+    a.localRuntimeBus.set("counter", 4);
+
+    const b = await loadTab();
+    b.localRuntimeBus.onStateUpdated("counter", () => {}); // hydrates 4 from A
+    flushBus();
+    b.localRuntimeBus.set("counter", 10); // local write AFTER hydrating
+
+    // A slow/duplicate peer's reply for the earlier request arrives late —
+    // it must not roll the tab back to 4.
+    const ch = new FakeBroadcastChannel("cws:bus");
+    ch.postMessage({ kind: "runtime-hydrate", name: "counter", value: 4 });
+    flushBus();
+    expect(b.localRuntimeBus.get("counter")).toBe(10);
+  });
+
   it("storage: tab A set → tab B listener + persisted state updated", async () => {
     const a = await loadTab();
     const b = await loadTab();
