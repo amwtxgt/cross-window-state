@@ -90,6 +90,18 @@ describe("useRuntimeState", () => {
     expect(seen).toEqual(["dark"]);
     scope.stop();
   });
+
+  it("module-level use (no active scope) does not warn and still tracks updates", () => {
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    // Called outside any effectScope — the module-level singleton pattern.
+    const theme = mod.useRuntimeState("theme-noscope", "light");
+    expect(theme.state.value).toBe("light");
+    const other = rendererMod.createRuntimeState("theme-noscope", "light");
+    other.set("dark");
+    expect(theme.state.value).toBe("dark");
+    expect(warnSpy).not.toHaveBeenCalled();
+    warnSpy.mockRestore();
+  });
 });
 
 describe("useStorageState", () => {

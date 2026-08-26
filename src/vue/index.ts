@@ -7,7 +7,7 @@
  * it never destroys the underlying state, which is shared by name across
  * every consumer on the page.
  */
-import { onScopeDispose, shallowRef } from "vue";
+import { getCurrentScope, onScopeDispose, shallowRef } from "vue";
 import type { ShallowRef } from "vue";
 import { createRuntimeState } from "../renderer/runtime-state";
 import type { RuntimeState } from "../renderer/runtime-state";
@@ -32,9 +32,14 @@ export function useRuntimeState<T>(
   const off = runtimeState.watch((v) => {
     ref.value = v;
   });
-  onScopeDispose(() => {
-    off();
-  });
+  // Outside an effect scope (module-level singleton consumers) there is
+  // nothing to dispose — calling onScopeDispose there triggers a Vue warning
+  // while the watcher keeps the module-lifetime state alive, which is wanted.
+  if (getCurrentScope()) {
+    onScopeDispose(() => {
+      off();
+    });
+  }
   return {
     state: ref,
     set: (value: T) => runtimeState.set(value),
@@ -69,9 +74,11 @@ export function useStorageState<T extends Record<string, unknown>>(
   // defaults keys refresh the snapshot; cross-window updates and proxy
   // writes both funnel into these key watchers
   const offs = Object.keys(defaults).map((key) => storageState.watch(key, refresh));
-  onScopeDispose(() => {
-    for (const off of offs) off();
-  });
+  if (getCurrentScope()) {
+    onScopeDispose(() => {
+      for (const off of offs) off();
+    });
+  }
   return {
     state: ref,
     proxy: storageState.state,
