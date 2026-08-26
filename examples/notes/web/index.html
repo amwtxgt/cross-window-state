@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>sticky notes — cross-window-state (web mode)</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <!-- The exact same Vue renderer as the Electron windows. Web mode kicks in
+         automatically because window.__crossWindowState__ is absent: runtime
+         state syncs via BroadcastChannel, storage state via localStorage.
+         Open this page twice (add ?role=preview for the preview view). -->
+    <script type="module" src="../src/renderer/main.ts"></script>
+  </body>
+</html>

@@ -10,8 +10,15 @@ A minimal Electron app demonstrating the library, and the e2e harness for the re
 ## Run
 
 ```bash
-# from the repository root
+# from the repository root — one command (builds the library first):
 pnpm install
+pnpm example:basic       # Electron dev mode
+pnpm example:basic:web   # web mode → open the printed URL in two tabs
+```
+
+Long form:
+
+```bash
 pnpm build                                        # build the library (dist/)
 pnpm --filter cross-window-state-example-basic dev  # Electron dev mode
 

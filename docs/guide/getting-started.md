@@ -42,3 +42,10 @@ Next: [Electron setup](./electron-setup) for the preload wiring, or [Web mode](.
 
 - **Runtime state** — memory-only, shared live across windows and the main process, garbage-collected when the last holder goes away. Perfect for UI-ish, session-scoped data.
 - **Storage state** — persisted as JSON (`<userData>/cross-window-state/<name>.json` on Electron, `localStorage` on web), with versioned migration. Perfect for settings.
+
+## Examples
+
+Runnable apps live in the repository:
+
+- [`examples/basic`](https://github.com/amwtxgt/cross-window-state/tree/main/examples/basic) — minimal counter/settings demo (also the e2e harness)
+- [`examples/notes`](https://github.com/amwtxgt/cross-window-state/tree/main/examples/notes) — realistic Vue 3 multi-window app: sticky-notes board + read-only preview window, persistence with versioned migration, main-process feeds, presence, and web (multi-tab) mode

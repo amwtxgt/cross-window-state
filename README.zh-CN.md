@@ -87,7 +87,19 @@ const { state, set } = useRuntimeState("theme", "light");
 // state 是 ShallowRef —— 模板自动更新
 ```
 
-可运行示例在 [`examples/basic`](./examples/basic)（Electron + Web 模式，兼作 e2e 测试载体）。
+可运行示例在 [`examples/`](./examples)：
+
+- [`examples/basic`](./examples/basic) —— 最小化计数器/设置演示（兼作 e2e 测试载体）
+- [`examples/notes`](./examples/notes) —— 贴近真实应用的 Vue 3 多窗口示例：便签看板 + 只读预览窗、版本化迁移的持久化、主进程数据流、在线窗口列表，以及 Web 多标签模式
+
+仓库根目录一条命令即可运行（会自动先构建库）：
+
+```bash
+pnpm example:notes      # Electron：看板窗 + 预览窗
+pnpm example:notes:web  # 浏览器多标签 → http://localhost:4173
+pnpm example:basic      # 最小化 Electron 演示
+pnpm example:basic:web  # 浏览器多标签
+```
 
 ## API 摘要
 

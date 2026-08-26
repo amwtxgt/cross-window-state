@@ -1,0 +1,21 @@
+{
+  "name": "cross-window-state-example-notes",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Sticky-notes board: a realistic Vue 3 + Electron multi-window demo for cross-window-state (also runs as plain browser tabs).",
+  "main": "out/main/index.js",
+  "scripts": {
+    "dev": "electron-vite dev",
+    "build": "electron-vite build",
+    "start": "electron-vite preview",
+    "build:web": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^6.0.8",
+    "cross-window-state": "workspace:*",
+    "electron-vite": "^5.0.0",
+    "vite": "^8.2.2",
+    "vue": "^3.5.41"
+  }
+}

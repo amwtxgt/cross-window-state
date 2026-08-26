@@ -88,7 +88,19 @@ const { state, set } = useRuntimeState("theme", "light");
 // state is a ShallowRef — templates update automatically
 ```
 
-A runnable app lives in [`examples/basic`](./examples/basic) (Electron + web mode, also the e2e harness).
+Runnable apps live in [`examples/`](./examples):
+
+- [`examples/basic`](./examples/basic) — minimal counter/settings demo (also the e2e harness)
+- [`examples/notes`](./examples/notes) — realistic Vue 3 multi-window app: sticky-notes board + read-only preview window, persistence with versioned migration, main-process feeds, presence, and web (multi-tab) mode
+
+One-liners from the repository root (the library builds itself first):
+
+```bash
+pnpm example:notes      # Electron: board + preview windows
+pnpm example:notes:web  # browser tabs → http://localhost:4173
+pnpm example:basic      # minimal Electron demo
+pnpm example:basic:web  # browser tabs
+```
 
 ## API summary
 
