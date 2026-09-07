@@ -145,15 +145,50 @@ describe("RuntimeStateManager IPC handlers", () => {
     expect(wc.send).toHaveBeenCalledTimes(1);
   });
 
-  it("runtimeSet updates the signal and broadcasts", () => {
+  it("runtimeSet updates the signal and broadcasts to other windows, no echo to sender", () => {
     const s = manager.acquire("theme", "light");
-    const wc = makeFakeWebContents(4);
+    const sender = makeFakeWebContents(4);
+    const other = makeFakeWebContents(5);
     invokeHandler(channel.runtimeGet, makeIpcEvent(4), "theme");
+    invokeHandler(channel.runtimeGet, makeIpcEvent(5), "theme");
 
     invokeHandler(channel.runtimeSet, makeIpcEvent(4), "theme", "dark");
 
     expect(s.value).toBe("dark");
-    expect(wc.send).toHaveBeenCalled();
+    // The sender's renderer RuntimeState.set already fired its watchers
+    // optimistically; echoing back would double-fire them.
+    expect(sender.send).not.toHaveBeenCalled();
+    expect(other.send).toHaveBeenCalledTimes(1);
+    const [ch, payload] = other.send.mock.calls[0] as [string, unknown];
+    expect(ch).toBe(runtimeUpdateChannel("theme"));
+    expect(payload).toEqual({ key: "theme", newValue: "dark", oldValue: "light" });
+  });
+
+  it("main-process set (no originating sender) still reaches every renderer", () => {
+    const wcA = makeFakeWebContents(4);
+    const wcB = makeFakeWebContents(5);
+    invokeHandler(channel.runtimeGet, makeIpcEvent(4), "theme");
+    invokeHandler(channel.runtimeGet, makeIpcEvent(5), "theme");
+
+    manager.set("theme", "dark");
+
+    expect(wcA.send).toHaveBeenCalledTimes(1);
+    expect(wcB.send).toHaveBeenCalledTimes(1);
+  });
+
+  it("excluded sender remains subscribed for later updates from other windows", () => {
+    const wcA = makeFakeWebContents(4);
+    const wcB = makeFakeWebContents(5);
+    invokeHandler(channel.runtimeGet, makeIpcEvent(4), "theme");
+    invokeHandler(channel.runtimeGet, makeIpcEvent(5), "theme");
+
+    invokeHandler(channel.runtimeSet, makeIpcEvent(4), "theme", "dark");
+    expect(wcA.send).not.toHaveBeenCalled();
+    expect(wcB.send).toHaveBeenCalledTimes(1);
+
+    invokeHandler(channel.runtimeSet, makeIpcEvent(5), "theme", "blue");
+    expect(wcB.send).toHaveBeenCalledTimes(1); // sender this round: no additional echo
+    expect(wcA.send).toHaveBeenCalledTimes(1); // still subscribed, got B's update
   });
 
   it("runtimeClear unregisters the sender; zero refs after clear really cleans up", () => {

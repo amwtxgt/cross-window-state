@@ -35,13 +35,13 @@ export class RuntimeStateManager {
       this.registerRenderer(key, event.sender.id);
       event.returnValue = this.states.get(key)?.value;
     });
-    ipcMain.on(channel.runtimeSet, (_event, key: unknown, value: unknown) => {
+    ipcMain.on(channel.runtimeSet, (event, key: unknown, value: unknown) => {
       if (typeof key !== "string" || key.length === 0) {
         // malformed keys could collide with channel naming (":") — reject
         console.error("[cws] runtime set rejected: key must be a non-empty string");
         return;
       }
-      this.set(key, value);
+      this.set(key, value, event.sender.id);
     });
     ipcMain.on(channel.runtimeClear, (event, key: unknown) => {
       if (typeof key !== "string") return;
@@ -83,8 +83,16 @@ export class RuntimeStateManager {
    * Set (or create) a state and broadcast to subscribed renderers.
    * `set(name, undefined)` clears the entry but still broadcasts
    * `{ newValue: undefined }` so renderers converge.
+   *
+   * `excludeSenderId` (the renderer that originated this set) is skipped by
+   * the broadcast: that window's own `RuntimeState.set` already fired its
+   * watchers optimistically, and the IPC round-trip would deserialize to a
+   * fresh reference — the `Object.is` guard on the renderer side can't catch
+   * it, so the sender's watchers would fire twice per set. Excluding the
+   * sender matches web-mode semantics (BroadcastChannel never delivers a
+   * message back to the posting context).
    */
-  set(name: string, value: unknown): void {
+  set(name: string, value: unknown, excludeSenderId?: number): void {
     let signal = this.states.get(name);
     if (!signal) {
       signal = createSignal(value);
@@ -97,7 +105,7 @@ export class RuntimeStateManager {
       // value locally until they re-acquire.
       this.states.delete(name);
     }
-    this.broadcast(name, { key: name, newValue: value, oldValue });
+    this.broadcast(name, { key: name, newValue: value, oldValue }, excludeSenderId);
   }
 
   private registerRenderer(key: string, senderId: number): void {
@@ -130,11 +138,15 @@ export class RuntimeStateManager {
     }
   }
 
-  private broadcast(key: string, payload: RuntimeUpdatePayload): void {
+  private broadcast(key: string, payload: RuntimeUpdatePayload, excludeSenderId?: number): void {
     const ids = this.rendererIds.get(key);
     if (!ids || ids.length === 0) return;
     const invalid: number[] = [];
     for (const id of ids) {
+      // The originating renderer already applied the change locally (its
+      // RuntimeState.set fires watchers optimistically); echoing back would
+      // double-fire them. Main-process sets carry no sender and reach everyone.
+      if (id === excludeSenderId) continue;
       // webContents may be gone or mid-destruction; treat all failures as
       // "drop the subscriber" instead of letting one dead window break the
       // broadcast loop.
