@@ -23,6 +23,9 @@ export interface FakeWebContents {
   destroyed: boolean;
   send: ReturnType<typeof vi.fn>;
   isDestroyed(): boolean;
+  once: ReturnType<typeof vi.fn>;
+  /** Mark destroyed and fire all registered `destroyed` listeners. */
+  destroy(): void;
 }
 
 export interface FakeIpcEvent {
@@ -87,12 +90,25 @@ export function currentUserDataPath(): string {
 export function makeFakeWebContents(id: number): FakeWebContents {
   const existing = state.webContents.get(id);
   if (existing) return existing;
+  const onceListeners = new Map<string, Array<() => void>>();
   const wc: FakeWebContents = {
     id,
     destroyed: false,
     send: vi.fn(),
     isDestroyed() {
       return this.destroyed;
+    },
+    once: vi.fn((event: string, listener: () => void) => {
+      const list = onceListeners.get(event) ?? [];
+      list.push(listener);
+      onceListeners.set(event, list);
+    }),
+    destroy() {
+      if (this.destroyed) return;
+      this.destroyed = true;
+      const list = onceListeners.get("destroyed") ?? [];
+      onceListeners.delete("destroyed");
+      for (const fn of list) fn();
     },
   };
   state.webContents.set(id, wc);

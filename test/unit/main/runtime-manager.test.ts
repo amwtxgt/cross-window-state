@@ -214,6 +214,97 @@ describe("RuntimeStateManager IPC handlers", () => {
   });
 });
 
+describe("RuntimeStateManager webContents lifecycle cleanup", () => {
+  it("garbage-collects state when webContents dies without runtimeClear (main released first)", () => {
+    manager.acquire("rightActiveIds-42", [1, 2]);
+    const wc = makeFakeWebContents(10);
+    invokeHandler(channel.runtimeGet, makeIpcEvent(10), "rightActiveIds-42");
+
+    // Main releases first (e.g. window manager destroy); renderer still holds a ref.
+    manager.release("rightActiveIds-42");
+    expect(manager.get("rightActiveIds-42")).toEqual([1, 2]);
+
+    // Renderer webContents dies without calling runtimeClear and without any further broadcast.
+    wc.destroy();
+    expect(manager.get("rightActiveIds-42")).toBeUndefined();
+  });
+
+  it("garbage-collects state when webContents dies before main releases", () => {
+    manager.acquire("rightActiveIds-43", [3]);
+    const wc = makeFakeWebContents(11);
+    invokeHandler(channel.runtimeGet, makeIpcEvent(11), "rightActiveIds-43");
+
+    wc.destroy();
+    // Main ref still alive
+    expect(manager.get("rightActiveIds-43")).toEqual([3]);
+
+    manager.release("rightActiveIds-43");
+    expect(manager.get("rightActiveIds-43")).toBeUndefined();
+  });
+
+  it("attaches at most one destroyed listener per webContents across multiple keys and clear/get cycles", () => {
+    manager.acquire("k1", "a");
+    manager.acquire("k2", "b");
+    const wc = makeFakeWebContents(12);
+
+    invokeHandler(channel.runtimeGet, makeIpcEvent(12), "k1");
+    invokeHandler(channel.runtimeGet, makeIpcEvent(12), "k2");
+    invokeHandler(channel.runtimeClear, makeIpcEvent(12), "k1");
+    invokeHandler(channel.runtimeGet, makeIpcEvent(12), "k1");
+
+    expect(wc.once).toHaveBeenCalledTimes(1);
+    expect(wc.once).toHaveBeenCalledWith("destroyed", expect.any(Function));
+
+    manager.release("k1");
+    manager.release("k2");
+    wc.destroy();
+
+    expect(manager.get("k1")).toBeUndefined();
+    expect(manager.get("k2")).toBeUndefined();
+  });
+
+  it("keeps state alive while another renderer still holds it after one webContents dies", () => {
+    manager.acquire("shared", "v1");
+    const wcA = makeFakeWebContents(20);
+    const wcB = makeFakeWebContents(21);
+    invokeHandler(channel.runtimeGet, makeIpcEvent(20), "shared");
+    invokeHandler(channel.runtimeGet, makeIpcEvent(21), "shared");
+    manager.release("shared");
+
+    wcA.destroy();
+    expect(manager.get("shared")).toBe("v1");
+    manager.set("shared", "v2");
+    expect(wcA.send).not.toHaveBeenCalled();
+    expect(wcB.send).toHaveBeenCalledTimes(1);
+
+    wcB.destroy();
+    expect(manager.get("shared")).toBeUndefined();
+  });
+
+  it("ignores runtimeGet from an already-destroyed webContents", () => {
+    manager.acquire("ephemeral", "init");
+    const wc = makeFakeWebContents(30);
+    wc.destroyed = true;
+
+    invokeHandler(channel.runtimeGet, makeIpcEvent(30), "ephemeral");
+    expect(wc.once).not.toHaveBeenCalled();
+
+    manager.release("ephemeral");
+    expect(manager.get("ephemeral")).toBeUndefined();
+  });
+
+  it("pruning the last dead renderer during broadcast also cleans up unreferenced state", () => {
+    const wc = makeFakeWebContents(31);
+    invokeHandler(channel.runtimeGet, makeIpcEvent(31), "orphan");
+    // Simulate dead webContents without destroyed event firing
+    wc.destroyed = true;
+
+    manager.set("orphan", "val");
+    expect(wc.send).not.toHaveBeenCalled();
+    expect(manager.get("orphan")).toBeUndefined();
+  });
+});
+
 function webContentsOf(id: number): FakeWebContents {
   // Query the live registry — never scan fromId.mock.results: call history is
   // stale across resetElectronMock() (and not even shared with the vi.mock

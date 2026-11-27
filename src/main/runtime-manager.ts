@@ -12,6 +12,7 @@
  *   zombie entries for get-only keys that were never set.
  */
 import { app, ipcMain, webContents } from "electron";
+import type { WebContents } from "electron";
 import { channel, runtimeUpdateChannel } from "../core/protocol";
 import type { RuntimeUpdatePayload } from "../core/protocol";
 import { createSignal } from "../core/signal";
@@ -19,7 +20,9 @@ import type { Signal } from "../core/signal";
 
 export class RuntimeStateManager {
   private states = new Map<string, Signal<unknown>>();
-  private rendererIds = new Map<string, number[]>();
+  private rendererIds = new Map<string, Set<number>>();
+  private senderKeys = new Map<number, Set<string>>();
+  private watchedSenders = new Set<number>();
   private mainRefs = new Map<string, number>();
 
   constructor() {
@@ -32,7 +35,7 @@ export class RuntimeStateManager {
         event.returnValue = undefined;
         return;
       }
-      this.registerRenderer(key, event.sender.id);
+      this.registerRenderer(key, event.sender);
       event.returnValue = this.states.get(key)?.value;
     });
     ipcMain.on(channel.runtimeSet, (event, key: unknown, value: unknown) => {
@@ -108,31 +111,63 @@ export class RuntimeStateManager {
     this.broadcast(name, { key: name, newValue: value, oldValue }, excludeSenderId);
   }
 
-  private registerRenderer(key: string, senderId: number): void {
-    const ids = this.rendererIds.get(key);
+  private registerRenderer(key: string, sender: WebContents): void {
+    if (sender.isDestroyed()) return;
+    const senderId = sender.id;
+
+    let ids = this.rendererIds.get(key);
     if (!ids) {
-      this.rendererIds.set(key, [senderId]);
-    } else if (!ids.includes(senderId)) {
-      ids.push(senderId);
+      ids = new Set();
+      this.rendererIds.set(key, ids);
+    }
+    ids.add(senderId);
+
+    let keys = this.senderKeys.get(senderId);
+    if (!keys) {
+      keys = new Set();
+      this.senderKeys.set(senderId, keys);
+    }
+    keys.add(key);
+
+    if (!this.watchedSenders.has(senderId)) {
+      this.watchedSenders.add(senderId);
+      sender.once("destroyed", () => {
+        this.watchedSenders.delete(senderId);
+        this.unregisterAllForSender(senderId);
+      });
+    }
+  }
+
+  private unregisterAllForSender(senderId: number): void {
+    const keys = this.senderKeys.get(senderId);
+    if (!keys) return;
+    for (const key of [...keys]) {
+      this.unregisterRenderer(key, senderId);
     }
   }
 
   private unregisterRenderer(key: string, senderId: number): void {
     const ids = this.rendererIds.get(key);
-    if (!ids) return;
-    const next = ids.filter((id) => id !== senderId);
-    if (next.length === 0) {
-      this.rendererIds.delete(key);
-      this.maybeCleanup(key);
-    } else {
-      this.rendererIds.set(key, next);
+    if (ids) {
+      ids.delete(senderId);
+      if (ids.size === 0) {
+        this.rendererIds.delete(key);
+        this.maybeCleanup(key);
+      }
+    }
+    const keys = this.senderKeys.get(senderId);
+    if (keys) {
+      keys.delete(key);
+      if (keys.size === 0) {
+        this.senderKeys.delete(senderId);
+      }
     }
   }
 
   private maybeCleanup(key: string): void {
     const hasMainRef = this.mainRefs.has(key);
     const renderers = this.rendererIds.get(key);
-    if (!hasMainRef && (!renderers || renderers.length === 0)) {
+    if (!hasMainRef && (!renderers || renderers.size === 0)) {
       this.states.delete(key);
       this.rendererIds.delete(key);
     }
@@ -140,7 +175,7 @@ export class RuntimeStateManager {
 
   private broadcast(key: string, payload: RuntimeUpdatePayload, excludeSenderId?: number): void {
     const ids = this.rendererIds.get(key);
-    if (!ids || ids.length === 0) return;
+    if (!ids || ids.size === 0) return;
     const invalid: number[] = [];
     for (const id of ids) {
       // The originating renderer already applied the change locally (its
@@ -161,11 +196,8 @@ export class RuntimeStateManager {
         invalid.push(id);
       }
     }
-    if (invalid.length > 0) {
-      this.rendererIds.set(
-        key,
-        (this.rendererIds.get(key) ?? []).filter((id) => !invalid.includes(id)),
-      );
+    for (const id of invalid) {
+      this.unregisterRenderer(key, id);
     }
   }
 }
