@@ -1,5 +1,11 @@
 # cross-window-state
 
+## 0.1.4
+
+### Patch Changes
+
+- [`4b691c7`](https://github.com/amwtxgt/cross-window-state/commit/4b691c7a50c492926ca36c8c82b493275294df54) Thanks [@amwtxgt](https://github.com/amwtxgt)! - Fix: automatically unregister and garbage-collect runtime states when a renderer `webContents` is destroyed without calling `destroy()`. Previously `RuntimeStateManager` kept dead sender IDs in `rendererIds` (preventing `maybeCleanup` from freeing per-window named states once the main process released them), and `broadcast()` left empty subscriber arrays instead of cleaning up.
+
 ## 0.1.3
 
 ### Patch Changes
